@@ -12,31 +12,30 @@ import edu.virginia.engine.display.DisplayObject;
 
 public class FinalGame extends Game {
 
+    // size parameters
     private static int gameHeight = 800;
     private static int visibleGameHeight = 700; //this seems to be the actual bottom of the screen
     private static int gameWidth = 800;
-    private static boolean collision = false;
-    private static boolean win = false;
-    private static int score = 0;
-    private final int TIME_BETWEEN_DROPS = 100;
-
-    //parameters for physics
-    private int gravity = 5;
-
     private int barWidth = 100;
     private int barHeight = visibleGameHeight - 100;
     private int barGap = 10;
-    private int recentDropIndex = 0;
+
+    // gameplay parameters
+    private boolean playing;
+    private boolean win;
+    private final int TIME_BETWEEN_DROPS = 100;
+    private int recentDropIndex;
     private int foodIndex;
     private int totalNumFoods;
     private int totalNumBars;
+    private int gravity;
 
+    // game elements
     private ArrayList<Sprite> bars = new ArrayList<>();
     private ArrayList<Sprite> waitingFoodQueue = new ArrayList<>();
     private ArrayList<Sprite> droppedFoodQueue = new ArrayList<>();
-    private SoundManager soundmanager = new SoundManager();
-
     private Sprite player = new Sprite("player", "player.png");
+    private SoundManager soundmanager = new SoundManager();
 
     // List of keys pressed in the previous frame. Updated every frame. Used to prevent visibility flickering
     private ArrayList<Integer> previousPressedKeys;
@@ -47,10 +46,13 @@ public class FinalGame extends Game {
     public FinalGame(int numFoods, int numBars) {
         super("Final Game", gameWidth, gameHeight);
 
+        playing = true;
+        win = false;
         recentDropIndex = TIME_BETWEEN_DROPS-1; // first food drops immediately; -1 to avoid starting with null
         foodIndex = 0;
         totalNumFoods = numFoods;
         totalNumBars = numBars;
+        gravity = 5;
 
         player.setPosition(barGap, barHeight + 10);
         player.setHitbox(barGap,barHeight+10,40,80);
@@ -84,36 +86,44 @@ public class FinalGame extends Game {
         if (player == null) return; // player is null on first frame
         super.update(pressedKeys);
 
-        // drop next food on a timed interval
-        if (recentDropIndex >= TIME_BETWEEN_DROPS && foodIndex < totalNumFoods) {
-            recentDropIndex = 0;
-            droppedFoodQueue.add(waitingFoodQueue.get(foodIndex));
-            foodIndex++;
-        }
-        recentDropIndex++;
+        if (playing) {
+            // drop next food on a timed interval
+            if (recentDropIndex >= TIME_BETWEEN_DROPS && foodIndex < totalNumFoods) {
+                recentDropIndex = 0;
+                droppedFoodQueue.add(waitingFoodQueue.get(foodIndex));
+                foodIndex++;
+            }
+            recentDropIndex++;
 
-        //update each food position by applying gravity
-        for (int i = 0; i < droppedFoodQueue.size(); i++) {
-            Sprite food = droppedFoodQueue.get(i);
+            //update each food position by applying gravity
+            for (int i = 0; i < droppedFoodQueue.size(); i++) {
+                Sprite food = droppedFoodQueue.get(i);
 
-            // check for player collision before updating position
-            if (player.collidesWith(food)) {
-                droppedFoodQueue.remove(food);
-            } else {
-                food.setPosition(food.getPosition().x, food.getPosition().y + gravity);
+                // check for player collision before updating position
+                if (player.collidesWith(food)) {
+                    droppedFoodQueue.remove(food);
+                } else {
+                    food.setPosition(food.getPosition().x, food.getPosition().y + gravity);
+                }
+            }
+
+            // player controls
+            if (player.getPosition().x > barGap &&
+                    pressedKeys.contains(KeyEvent.VK_LEFT) &&
+                    !previousPressedKeys.contains(KeyEvent.VK_LEFT)) {
+                player.setPosition(player.getPosition().x - barWidth - barGap, player.getPosition().y);
+            }
+            if (player.getPosition().x < (totalNumBars - 1) * (barWidth + barGap) &&
+                    pressedKeys.contains(KeyEvent.VK_RIGHT) &&
+                    !previousPressedKeys.contains(KeyEvent.VK_RIGHT)) {
+                player.setPosition(player.getPosition().x + barWidth + barGap, player.getPosition().y);
             }
         }
 
-        // player movement
-        if (player.getPosition().x > barGap &&
-                pressedKeys.contains(KeyEvent.VK_LEFT) &&
-                !previousPressedKeys.contains(KeyEvent.VK_LEFT)) {
-            player.setPosition(player.getPosition().x - barWidth - barGap, player.getPosition().y);
-        }
-        if (player.getPosition().x < (totalNumBars-1) * (barWidth + barGap) &&
-                pressedKeys.contains(KeyEvent.VK_RIGHT) &&
-                !previousPressedKeys.contains(KeyEvent.VK_RIGHT)) {
-            player.setPosition(player.getPosition().x + barWidth + barGap, player.getPosition().y);
+        // pause
+        if (pressedKeys.contains(KeyEvent.VK_P) &&
+                !previousPressedKeys.contains(KeyEvent.VK_P)){
+            playing = !playing;
         }
 
         previousPressedKeys = new ArrayList<Integer>(pressedKeys);
@@ -129,6 +139,8 @@ public class FinalGame extends Game {
 
         super.draw(g);
         player.draw(g);
+
+        if (!playing) g.drawString("GAME PAUSED", gameWidth*3/4, gameHeight*1/4);
 
         for (int i = 0; i < droppedFoodQueue.size(); i++) {
             droppedFoodQueue.get(i).draw(g);
