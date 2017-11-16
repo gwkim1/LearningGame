@@ -14,7 +14,7 @@ public class FinalGame extends Game {
 
     private static int gameHeight = 800;
     private static int visibleGameHeight = 700; //this seems to be the actual bottom of the screen
-    private static int gameWidth = 500;
+    private static int gameWidth = 800;
     private static boolean collision = false;
     private static boolean win = false;
     private static int score = 0;
@@ -29,14 +29,14 @@ public class FinalGame extends Game {
     private int recentDropIndex = 0;
     private int foodIndex;
     private int totalNumFoods;
+    private int totalNumBars;
 
-    ArrayList<Sprite> waitingFoodQueue = new ArrayList<>();
-    ArrayList<Sprite> droppedFoodQueue = new ArrayList<>();
-    SoundManager soundmanager = new SoundManager();
+    private ArrayList<Sprite> bars = new ArrayList<>();
+    private ArrayList<Sprite> waitingFoodQueue = new ArrayList<>();
+    private ArrayList<Sprite> droppedFoodQueue = new ArrayList<>();
+    private SoundManager soundmanager = new SoundManager();
 
     Sprite player = new Sprite("player", "player.png");
-    Sprite bar1 = new Sprite("bar1");
-    Sprite bar2 = new Sprite("bar2");
 
     // List of keys pressed in the previous frame. Updated every frame. Used to prevent visibility flickering
     public ArrayList<Integer> previousPressedKeys;
@@ -44,20 +44,23 @@ public class FinalGame extends Game {
     /**
      * Constructor. See constructor in Game.java for details on the parameters given
      */
-    public FinalGame(int numFoods) {
+    public FinalGame(int numFoods, int numBars) {
         super("Final Game", gameWidth, gameHeight);
 
         recentDropIndex = TIME_BETWEEN_DROPS-1; // first food drops immediately; -1 to avoid starting with null
         foodIndex = 0;
         totalNumFoods = numFoods;
+        totalNumBars = numBars;
 
         player.setPosition(barGap, barHeight + 10);
         player.setHitbox(barGap,barHeight+10,40,80);
-        bar1.setPosition(0, 0);
-        bar1.setHitbox(0, 0, barWidth, barHeight);
-        bar2.setPosition(barWidth + barGap, 0);
-        bar2.setHitbox(barWidth + barGap, 0, barWidth, barHeight);
 
+        for (int i = 0; i < totalNumBars; i++) {
+            Sprite newBar = new Sprite("bar" + i);
+            // no need to set position for bars; hitbox achieves the same effect needed for drawing
+            newBar.setHitbox((barWidth + barGap) * i, 0, barWidth, barHeight);
+            bars.add(newBar);
+        }
 
         //create food icons and add to foodQueue
         Sprite avocado = new Sprite("avocado", "foods_resized/avocado_100.png", "veggie");
@@ -104,12 +107,12 @@ public class FinalGame extends Game {
         if (player.getPosition().x > barGap &&
                 pressedKeys.contains(KeyEvent.VK_LEFT) &&
                 !previousPressedKeys.contains(KeyEvent.VK_LEFT)) {
-            player.setPosition(player.getPosition().x - barWidth, player.getPosition().y);
+            player.setPosition(player.getPosition().x - barWidth - barGap, player.getPosition().y);
         }
-        if (player.getPosition().x < gameWidth - barWidth - barGap &&
+        if (player.getPosition().x < (totalNumBars-1) * (barWidth + barGap) &&
                 pressedKeys.contains(KeyEvent.VK_RIGHT) &&
                 !previousPressedKeys.contains(KeyEvent.VK_RIGHT)) {
-            player.setPosition(player.getPosition().x + barWidth, player.getPosition().y);
+            player.setPosition(player.getPosition().x + barWidth + barGap, player.getPosition().y);
         }
 
         previousPressedKeys = new ArrayList<Integer>(pressedKeys);
@@ -121,10 +124,10 @@ public class FinalGame extends Game {
      * */
     @Override
     public void draw(Graphics g){
+        if (player == null) return;
+
         super.draw(g);
         player.draw(g);
-        bar1.draw(g);
-        bar2.draw(g);
 
         for (int i = 0; i < droppedFoodQueue.size(); i++) {
             droppedFoodQueue.get(i).draw(g);
@@ -135,9 +138,11 @@ public class FinalGame extends Game {
             this.stop();
         } else {
             Graphics2D g2d = (Graphics2D) g;
-            for (int i = 0; i < 4; i++) {
-                g2d.draw(bar1.getHitbox().lines.get(i));
-                g2d.draw(bar2.getHitbox().lines.get(i));
+            // bars have no sprites, just draw the hitboxes to achieve the same effect
+            for (int i = 0; i < bars.size(); i++) {
+                for (int j = 0; j < 4; j++) {
+                    g2d.draw(bars.get(i).getHitbox().lines.get(j));
+                }
             }
         }
     }
@@ -147,7 +152,7 @@ public class FinalGame extends Game {
      * that calls update() and draw() every frame
      * */
     public static void main(String[] args) {
-        FinalGame game = new FinalGame(4);
+        FinalGame game = new FinalGame(4, 5);
         game.start();
     }
 }
