@@ -36,10 +36,10 @@ public class FinalGame extends Game {
     private ArrayList<Sprite> droppedFoodQueue = new ArrayList<>();
     private SoundManager soundmanager = new SoundManager();
 
-    Sprite player = new Sprite("player", "player.png");
+    private Sprite player = new Sprite("player", "player.png");
 
     // List of keys pressed in the previous frame. Updated every frame. Used to prevent visibility flickering
-    public ArrayList<Integer> previousPressedKeys;
+    private ArrayList<Integer> previousPressedKeys;
 
     /**
      * Constructor. See constructor in Game.java for details on the parameters given
@@ -62,22 +62,17 @@ public class FinalGame extends Game {
             bars.add(newBar);
         }
 
-        //create food icons and add to foodQueue
-        Sprite avocado = new Sprite("avocado", "foods_resized/avocado_100.png", "veggie");
-        waitingFoodQueue.add(avocado);
-        Sprite steak = new Sprite("steak", "foods_resized/steak_100.png", "meat");
-        waitingFoodQueue.add(steak);
-        Sprite carrot = new Sprite("carrot", "foods_resized/carrot_100.png", "veggie");
-        waitingFoodQueue.add(carrot);
-        Sprite bacon = new Sprite("bacon", "foods_resized/bacon_100.png", "meat");
-        waitingFoodQueue.add(bacon);
-        for (int i = 0; i < waitingFoodQueue.size(); i++) {
-            Sprite food = waitingFoodQueue.get(i);
-            if (food.foodType == "veggie")
-                food.setPosition(0, 0);
-            else
-                food.setPosition(barWidth + barGap, 0);
+    }
+
+    private void addFood(String id, String fileName, String foodType) {
+        Sprite food = new Sprite(id,fileName,foodType);
+        if (food.foodType == "veggie") {
+            food.setPosition(0, 0);
+        } else if (food.foodType == "meat") {
+            food.setPosition(barWidth+barGap, 0);
         }
+        food.setHitbox(food.getPosition().x,food.getPosition().y,100,100);
+        waitingFoodQueue.add(food);
     }
 
     /**
@@ -87,23 +82,29 @@ public class FinalGame extends Game {
     @Override
     public void update(ArrayList<Integer> pressedKeys) {
         if (player == null) return; // player is null on first frame
-
         super.update(pressedKeys);
 
+        // drop next food on a timed interval
         if (recentDropIndex >= TIME_BETWEEN_DROPS && foodIndex < totalNumFoods) {
             recentDropIndex = 0;
             droppedFoodQueue.add(waitingFoodQueue.get(foodIndex));
             foodIndex++;
         }
+        recentDropIndex++;
 
         //update each food position by applying gravity
         for (int i = 0; i < droppedFoodQueue.size(); i++) {
             Sprite food = droppedFoodQueue.get(i);
-            food.setPosition(food.getPosition().x, food.getPosition().y + gravity);
+
+            // check for player collision before updating position
+            if (player.collidesWith(food)) {
+                droppedFoodQueue.remove(food);
+            } else {
+                food.setPosition(food.getPosition().x, food.getPosition().y + gravity);
+            }
         }
 
-        recentDropIndex++;
-
+        // player movement
         if (player.getPosition().x > barGap &&
                 pressedKeys.contains(KeyEvent.VK_LEFT) &&
                 !previousPressedKeys.contains(KeyEvent.VK_LEFT)) {
@@ -152,7 +153,11 @@ public class FinalGame extends Game {
      * that calls update() and draw() every frame
      * */
     public static void main(String[] args) {
-        FinalGame game = new FinalGame(4, 5);
-        game.start();
+        FinalGame level1 = new FinalGame(4, 5);
+        level1.addFood("avocado", "foods_resized/avocado_100.png", "veggie");
+        level1.addFood("steak", "foods_resized/steak_100.png", "meat");
+        level1.addFood("carrot", "foods_resized/carrot_100.png", "veggie");
+        level1.addFood("bacon", "foods_resized/bacon_100.png", "meat");
+        level1.start();
     }
 }

@@ -220,7 +220,7 @@ public class DisplayObject {
 
 	public void setPosition(int x, int y) {
 		this.position.setLocation(x, y);
-		//hitbox.setPosition(x,y);
+		this.setHitbox(x,y);
 	}
 	public Point getPosition() { return this.position.getLocation(); }
 
@@ -238,6 +238,7 @@ public class DisplayObject {
 	public void setHitbox(int x, int y, int w, int h) {
 		this.hitbox = new Hitbox(x,y,w,h);
 	}
+	public void setHitbox(int x, int y) {this.hitbox = new Hitbox(x,y,hitbox.width,hitbox.height); }
 	public Hitbox getHitbox() {
 		return this.hitbox;
 	}
