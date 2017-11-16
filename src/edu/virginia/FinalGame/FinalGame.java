@@ -12,23 +12,24 @@ import edu.virginia.engine.display.DisplayObject;
 
 public class FinalGame extends Game {
 
-    public static int gameHeight = 800;
-    public static int visibleGameHeight = 460; //this seems to be the actual bottom of the screen
-    public static int gameWidth = 500;
-    public static boolean collision = false;
-    public static boolean win = false;
-    public static int score = 0;
-    public static double maxScale = 2.0;
-    public static double minScale = 0.1;
+    private static int gameHeight = 800;
+    private static int visibleGameHeight = 460; //this seems to be the actual bottom of the screen
+    private static int gameWidth = 500;
+    private static boolean collision = false;
+    private static boolean win = false;
+    private static int score = 0;
+    private final int TIME_BETWEEN_DROPS = 100;
 
     //parameters for physics
-    public int gravity = 1;
+    private int gravity = 5;
 
-    public int barWidth = 100;
-    public int barGap = 10;
-    public int recentDropIndex = 0;
+    private int barWidth = 100;
+    private int barGap = 10;
+    private int recentDropIndex = 0;
+    private int foodIndex;
 
-    ArrayList<Sprite> foodQueue = new ArrayList<>();
+    ArrayList<Sprite> waitingFoodQueue = new ArrayList<>();
+    ArrayList<Sprite> droppedFoodQueue = new ArrayList<>();
     SoundManager soundmanager = new SoundManager();
 
     Sprite bar1 = new Sprite("bar1");
@@ -44,6 +45,9 @@ public class FinalGame extends Game {
     public FinalGame() {
         super("Final Game", gameWidth, gameHeight);
 
+        recentDropIndex = TIME_BETWEEN_DROPS-1; // first food drops immediately; -1 to avoid starting with null
+        foodIndex = 0;
+
         bar1.setPosition(0, 0);
         bar1.setHitbox(0, 0, barWidth, gameHeight);
         bar2.setPosition(barWidth + barGap, 0);
@@ -52,21 +56,19 @@ public class FinalGame extends Game {
 
         //create food icons and add to foodQueue
         Sprite avocado = new Sprite("avocado", "foods_resized/avocado_100.png", "veggie");
-        foodQueue.add(avocado);
-        Sprite carrot = new Sprite("carrot", "foods_resized/carrot_100.png", "veggie");
-        foodQueue.add(carrot);
+        waitingFoodQueue.add(avocado);
         Sprite steak = new Sprite("steak", "foods_resized/steak_100.png", "meat");
-        foodQueue.add(steak);
+        waitingFoodQueue.add(steak);
+        Sprite carrot = new Sprite("carrot", "foods_resized/carrot_100.png", "veggie");
+        waitingFoodQueue.add(carrot);
         Sprite bacon = new Sprite("bacon", "foods_resized/bacon_100.png", "meat");
-        foodQueue.add(bacon);
-
-        for (int i = 0; i < foodQueue.size(); i++) {
-            Sprite food = foodQueue.get(i);
+        waitingFoodQueue.add(bacon);
+        for (int i = 0; i < waitingFoodQueue.size(); i++) {
+            Sprite food = waitingFoodQueue.get(i);
             if (food.foodType == "veggie")
                 food.setPosition(0, 0);
             else
                 food.setPosition(barWidth + barGap, 0);
-
         }
     }
 
@@ -76,12 +78,19 @@ public class FinalGame extends Game {
      */
     @Override
     public void update(ArrayList<Integer> pressedKeys) {
-        //update each food position by applying gravity
-        for (int i = 0; i < foodQueue.size(); i++) {
-            Sprite food = foodQueue.get(i);
-            food.setPosition(food.getPosition().x, food.getPosition().y + gravity * (i+1));
+        if (recentDropIndex >= TIME_BETWEEN_DROPS) {
+            recentDropIndex = 0;
+            droppedFoodQueue.add(waitingFoodQueue.get(foodIndex));
+            foodIndex++;
         }
 
+        //update each food position by applying gravity
+        for (int i = 0; i < droppedFoodQueue.size(); i++) {
+            Sprite food = droppedFoodQueue.get(i);
+            food.setPosition(food.getPosition().x, food.getPosition().y + gravity);
+        }
+
+        recentDropIndex++;
         super.update(pressedKeys);
         previousPressedKeys = new ArrayList<Integer>(pressedKeys);
     }
@@ -96,8 +105,8 @@ public class FinalGame extends Game {
         bar1.draw(g);
         bar2.draw(g);
 
-        for (int i = 0; i < foodQueue.size(); i++) {
-            foodQueue.get(i).draw(g);
+        for (int i = 0; i < droppedFoodQueue.size(); i++) {
+            droppedFoodQueue.get(i).draw(g);
         }
 
         if (win) {
