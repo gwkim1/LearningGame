@@ -13,7 +13,7 @@ import edu.virginia.engine.display.DisplayObject;
 public class FinalGame extends Game {
 
     private static int gameHeight = 800;
-    private static int visibleGameHeight = 460; //this seems to be the actual bottom of the screen
+    private static int visibleGameHeight = 700; //this seems to be the actual bottom of the screen
     private static int gameWidth = 500;
     private static boolean collision = false;
     private static boolean win = false;
@@ -24,17 +24,19 @@ public class FinalGame extends Game {
     private int gravity = 5;
 
     private int barWidth = 100;
+    private int barHeight = visibleGameHeight - 100;
     private int barGap = 10;
     private int recentDropIndex = 0;
     private int foodIndex;
+    private int totalNumFoods;
 
     ArrayList<Sprite> waitingFoodQueue = new ArrayList<>();
     ArrayList<Sprite> droppedFoodQueue = new ArrayList<>();
     SoundManager soundmanager = new SoundManager();
 
+    Sprite player = new Sprite("player", "player.png");
     Sprite bar1 = new Sprite("bar1");
     Sprite bar2 = new Sprite("bar2");
-
 
     // List of keys pressed in the previous frame. Updated every frame. Used to prevent visibility flickering
     public ArrayList<Integer> previousPressedKeys;
@@ -42,16 +44,19 @@ public class FinalGame extends Game {
     /**
      * Constructor. See constructor in Game.java for details on the parameters given
      */
-    public FinalGame() {
+    public FinalGame(int numFoods) {
         super("Final Game", gameWidth, gameHeight);
 
         recentDropIndex = TIME_BETWEEN_DROPS-1; // first food drops immediately; -1 to avoid starting with null
         foodIndex = 0;
+        totalNumFoods = numFoods;
 
+        player.setPosition(barGap, barHeight + 10);
+        player.setHitbox(barGap,barHeight+10,40,80);
         bar1.setPosition(0, 0);
-        bar1.setHitbox(0, 0, barWidth, gameHeight);
+        bar1.setHitbox(0, 0, barWidth, barHeight);
         bar2.setPosition(barWidth + barGap, 0);
-        bar2.setHitbox(barWidth + barGap, 0, barWidth, gameHeight);
+        bar2.setHitbox(barWidth + barGap, 0, barWidth, barHeight);
 
 
         //create food icons and add to foodQueue
@@ -78,7 +83,11 @@ public class FinalGame extends Game {
      */
     @Override
     public void update(ArrayList<Integer> pressedKeys) {
-        if (recentDropIndex >= TIME_BETWEEN_DROPS) {
+        if (player == null) return; // player is null on first frame
+
+        super.update(pressedKeys);
+
+        if (recentDropIndex >= TIME_BETWEEN_DROPS && foodIndex < totalNumFoods) {
             recentDropIndex = 0;
             droppedFoodQueue.add(waitingFoodQueue.get(foodIndex));
             foodIndex++;
@@ -91,7 +100,18 @@ public class FinalGame extends Game {
         }
 
         recentDropIndex++;
-        super.update(pressedKeys);
+
+        if (player.getPosition().x > barGap &&
+                pressedKeys.contains(KeyEvent.VK_LEFT) &&
+                !previousPressedKeys.contains(KeyEvent.VK_LEFT)) {
+            player.setPosition(player.getPosition().x - barWidth, player.getPosition().y);
+        }
+        if (player.getPosition().x < gameWidth - barWidth - barGap &&
+                pressedKeys.contains(KeyEvent.VK_RIGHT) &&
+                !previousPressedKeys.contains(KeyEvent.VK_RIGHT)) {
+            player.setPosition(player.getPosition().x + barWidth, player.getPosition().y);
+        }
+
         previousPressedKeys = new ArrayList<Integer>(pressedKeys);
     }
 
@@ -102,6 +122,7 @@ public class FinalGame extends Game {
     @Override
     public void draw(Graphics g){
         super.draw(g);
+        player.draw(g);
         bar1.draw(g);
         bar2.draw(g);
 
@@ -126,7 +147,7 @@ public class FinalGame extends Game {
      * that calls update() and draw() every frame
      * */
     public static void main(String[] args) {
-        FinalGame game = new FinalGame();
+        FinalGame game = new FinalGame(4);
         game.start();
     }
 }
