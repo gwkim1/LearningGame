@@ -23,6 +23,7 @@ public class FinalGame extends Game {
     // gameplay parameters
     private boolean playing;
     private boolean win;
+    private boolean lose;
     private final int TIME_BETWEEN_DROPS = 100;
     private int recentDropIndex;
     private int foodIndex;
@@ -37,8 +38,84 @@ public class FinalGame extends Game {
     private Sprite player = new Sprite("player", "player.png");
     private SoundManager soundmanager = new SoundManager();
 
+    //progress bars of food stacks
+    private final int LV1_GOAL = 5;
+    private final int LV1_LIMIT = 100;
+
+    private FoodStack meatStack = new FoodStack(LV1_GOAL, LV1_LIMIT, "meat");
+    private FoodStack veggieStack = new FoodStack(LV1_GOAL, LV1_LIMIT, "veggie");
+    private ArrayList<FoodStack> stacks = new ArrayList<>();
+
+
+
+
     // List of keys pressed in the previous frame. Updated every frame. Used to prevent visibility flickering
     private ArrayList<Integer> previousPressedKeys;
+
+
+
+    private class FoodQueue {
+        //inserted at the end, first element pops up
+        private ArrayList<Sprite> queue;
+
+        private FoodQueue() {
+            queue = new ArrayList<>();
+        }
+        private void enqueue(Sprite s) {
+            queue.add(s); //at end of list
+        };
+        private Sprite dequeue() {
+            return queue.remove(0); //remove from the beginning. subsequent elements shifted
+        };
+        private Sprite next() {
+            return queue.get(0);
+        }
+        private boolean isEmpty() {
+            return queue.isEmpty();
+        };
+        private int size() {
+            return queue.size();
+        }
+    }
+
+    private class FoodStack { //for the progress bars
+        //inserted at begining, removed from beginning
+        private ArrayList<Sprite> stack;
+        private int goal;
+        private int limit;
+        private String id;
+
+        private FoodStack(int goal, int limit, String id) {
+            stack = new ArrayList<>();
+            this.goal = goal;
+            this.limit = limit;
+            this.id = id;
+        }
+        private void push(Sprite s) {
+            stack.add(0, s); //at head of list
+            System.out.println("pushed to " + id + ", new size: " + stack.size());
+        };
+        private Sprite pop() {
+            return stack.remove(0); //remove from the beginning. subsequent elements shifted
+        };
+        private Sprite peek() {
+            return stack.get(0);
+        }
+        private boolean isEmpty() {
+            return stack.isEmpty();
+        };
+        private int size() {
+            return stack.size();
+        }
+        private boolean reachedGoal() {
+            return stack.size() >= this.goal;
+        }
+        private boolean reachedLimit() {
+            return stack.size() >= this.limit;
+        }
+
+    }
+
 
     /**
      * Constructor. See constructor in Game.java for details on the parameters given
@@ -48,6 +125,7 @@ public class FinalGame extends Game {
 
         playing = true;
         win = false;
+        lose = false;
         recentDropIndex = TIME_BETWEEN_DROPS-1; // first food drops immediately; -1 to avoid starting with null
         foodIndex = 0;
         totalNumFoods = numFoods;
@@ -64,6 +142,11 @@ public class FinalGame extends Game {
             bars.add(newBar);
         }
 
+        stacks.add(meatStack);
+        stacks.add(veggieStack);
+
+
+
     }
 
     private void addFood(String id, String fileName, String foodType) {
@@ -77,17 +160,53 @@ public class FinalGame extends Game {
         waitingFoodQueue.add(food);
     }
 
+
+    //updates the progress of the game by checking for each progress bar size against goals and limits
+    private void updateProgress() {
+        //win and lose would be false if this function is called
+        boolean no_limit_reached = true; //first assume no limits are reached
+        boolean all_goals_reached = false; //also assume not all goals are reached
+        for (int i = 0; i < stacks.size(); i++) {
+            FoodStack stack = stacks.get(i);
+            System.out.println("size of " + stack.id + " " + stack.stack.size());
+            if (stack.reachedLimit()) { //if a stack has exceeded limit
+                System.out.println("this stack reached limit");
+                no_limit_reached = false;
+            }
+            if (!stack.reachedGoal()) { //if any one of the stacks have not reached goal, break. win = false
+                System.out.println("this stack did not reach goal");
+                all_goals_reached = false;
+            }
+
+        }
+
+        win = all_goals_reached;
+        lose = !no_limit_reached;
+
+        if (win == true || lose == true) {
+            System.out.println("playing set to false, win: " + win + " lose: " + lose);
+            playing = false;
+        }
+
+    }
+
+
+
     /**
      * Engine will automatically call this update method once per frame and pass to us
      * the set of keys (as strings) that are currently being pressed down
      */
     @Override
     public void update(ArrayList<Integer> pressedKeys) {
+        //boolean prev_collision = false;
+
         if (player == null) return; // player is null on first frame
         super.update(pressedKeys);
 
         if (playing) {
             // drop next food on a timed interval
+            // if timer for this food exceeded TIME_BETWEEN_DROPS and there are more foods to come, reset dropindex
+            // pick the most recent food from watingFoodQueue and add to droppedFoodQueue
             if (recentDropIndex >= TIME_BETWEEN_DROPS && foodIndex < totalNumFoods) {
                 recentDropIndex = 0;
                 droppedFoodQueue.add(waitingFoodQueue.get(foodIndex));
@@ -96,14 +215,28 @@ public class FinalGame extends Game {
             recentDropIndex++;
 
             //update each food position by applying gravity
+            System.out.println("droppedFoodQueue size: " + droppedFoodQueue.size());
             for (int i = 0; i < droppedFoodQueue.size(); i++) {
                 Sprite food = droppedFoodQueue.get(i);
 
                 // check for player collision before updating position
                 if (player.collidesWith(food)) {
                     droppedFoodQueue.remove(food);
-                } else {
-                    food.setPosition(food.getPosition().x, food.getPosition().y + gravity);
+
+                    System.out.println("collided");
+                    //put on FoodStack
+                    if (food.foodType == "veggie") {
+                        veggieStack.push(food);
+                    } else if (food.foodType == "meat") {
+                        meatStack.push(food);
+                    }
+
+                    //prev_collision = true;
+
+                }
+                else {
+                    food.setPosition(food.getPosition().x, food.getPosition().y + gravity); //each food keeps on dropping
+                    //prev_collision = false;
                 }
             }
 
@@ -125,6 +258,10 @@ public class FinalGame extends Game {
                 !previousPressedKeys.contains(KeyEvent.VK_P)){
             playing = !playing;
         }
+
+        updateProgress(); //update progress of the game based on level goals and limits
+
+
 
         previousPressedKeys = new ArrayList<Integer>(pressedKeys);
     }
@@ -166,10 +303,13 @@ public class FinalGame extends Game {
      * */
     public static void main(String[] args) {
         FinalGame level1 = new FinalGame(4, 5);
-        level1.addFood("avocado", "foods_resized/avocado_100.png", "veggie");
-        level1.addFood("steak", "foods_resized/steak_100.png", "meat");
-        level1.addFood("carrot", "foods_resized/carrot_100.png", "veggie");
-        level1.addFood("bacon", "foods_resized/bacon_100.png", "meat");
+        for (int i = 0; i < 10; i++) {
+            level1.addFood("avocado", "foods_resized/avocado_100.png", "veggie");
+            level1.addFood("steak", "foods_resized/steak_100.png", "meat");
+            level1.addFood("carrot", "foods_resized/carrot_100.png", "veggie");
+            level1.addFood("bacon", "foods_resized/bacon_100.png", "meat");
+        }
+        System.out.println("size: " + level1.waitingFoodQueue.size());
         level1.start();
     }
 }
