@@ -40,7 +40,7 @@ public class FinalGame extends Game {
 
     //progress bars of food stacks
     private final int LV1_GOAL = 5;
-    private final int LV1_LIMIT = 100;
+    private final int LV1_LIMIT = 7;
 
     private FoodStack meatStack = new FoodStack(LV1_GOAL, LV1_LIMIT, "meat");
     private FoodStack veggieStack = new FoodStack(LV1_GOAL, LV1_LIMIT, "veggie");
@@ -165,16 +165,16 @@ public class FinalGame extends Game {
     private void updateProgress() {
         //win and lose would be false if this function is called
         boolean no_limit_reached = true; //first assume no limits are reached
-        boolean all_goals_reached = false; //also assume not all goals are reached
+        boolean all_goals_reached = true; //also assume not all goals are reached
         for (int i = 0; i < stacks.size(); i++) {
             FoodStack stack = stacks.get(i);
             System.out.println("size of " + stack.id + " " + stack.stack.size());
             if (stack.reachedLimit()) { //if a stack has exceeded limit
-                System.out.println("this stack reached limit");
+                //System.out.println("this stack reached limit");
                 no_limit_reached = false;
             }
             if (!stack.reachedGoal()) { //if any one of the stacks have not reached goal, break. win = false
-                System.out.println("this stack did not reach goal");
+                //System.out.println("this stack did not reach goal");
                 all_goals_reached = false;
             }
 
@@ -302,7 +302,7 @@ public class FinalGame extends Game {
      * that calls update() and draw() every frame
      * */
     public static void main(String[] args) {
-        FinalGame level1 = new FinalGame(4, 5);
+        FinalGame level1 = new FinalGame(40, 5);
         for (int i = 0; i < 10; i++) {
             level1.addFood("avocado", "foods_resized/avocado_100.png", "veggie");
             level1.addFood("steak", "foods_resized/steak_100.png", "meat");
