@@ -27,7 +27,7 @@ public class FinalGame extends Game {
     private boolean playing;
     private boolean win;
     private boolean lose;
-    private final int TIME_BETWEEN_DROPS = 50;
+    private final int TIME_BETWEEN_DROPS = 30;
     private int recentDropIndex;
     private int foodIndex;
     private int totalNumFoods;
@@ -175,6 +175,7 @@ public class FinalGame extends Game {
             this.addFood(filenames.get(i), filenames.get(i), filecategories.get(i));
         }
 
+        Collections.shuffle(this.waitingFoodQueue);
 
     }
 
@@ -303,7 +304,7 @@ public class FinalGame extends Game {
             // drop next food on a timed interval
             // if timer for this food exceeded TIME_BETWEEN_DROPS and there are more foods to come, reset dropindex
             // pick the most recent food from watingFoodQueue and add to droppedFoodQueue
-            if (recentDropIndex >= TIME_BETWEEN_DROPS && foodIndex < totalNumFoods) { //make food falls infinite
+            if (recentDropIndex >= TIME_BETWEEN_DROPS && foodIndex < totalNumFoods) {
                 recentDropIndex = 0;
                 droppedFoodQueue.add(waitingFoodQueue.get(foodIndex));
                 foodIndex++;
@@ -311,6 +312,7 @@ public class FinalGame extends Game {
             recentDropIndex++;
 
             //update each food position by applying gravity
+            System.out.println("waitingFoodQueue size: " + waitingFoodQueue.size());
             System.out.println("droppedFoodQueue size: " + droppedFoodQueue.size());
             for (int i = 0; i < droppedFoodQueue.size(); i++) {
                 Sprite food = droppedFoodQueue.get(i);
@@ -426,27 +428,21 @@ public class FinalGame extends Game {
 
         ArrayList<String> filenames = new ArrayList<>();
         ArrayList<String> filecategories = new ArrayList<>();
-        filenames.add("foods_resized/avocado_100.png");
-        filecategories.add("veggie");
-        filenames.add("foods_resized/steak_100.png");
-        filecategories.add("meat");
-        filenames.add("foods_resized/carrot_100.png");
-        filecategories.add("veggie");
-        filenames.add("foods_resized/bacon_100.png");
-        filecategories.add("meat");
+
+        for (int i = 0; i < 10; i++) {
+            filenames.add("foods_resized/avocado_100.png");
+            filecategories.add("veggie");
+            filenames.add("foods_resized/steak_100.png");
+            filecategories.add("meat");
+            filenames.add("foods_resized/carrot_100.png");
+            filecategories.add("veggie");
+            filenames.add("foods_resized/bacon_100.png");
+            filecategories.add("meat");
+        }
 
         FinalGame level1 = new FinalGame(3, 10, 3, 5, categories, filenames, filecategories);
 
-        /*
-        for (int i = 0; i < 10; i++) {
-            level1.addFood("avocado", "foods_resized/avocado_100.png", "veggie");
-            level1.addFood("steak", "foods_resized/steak_100.png", "meat");
-            level1.addFood("carrot", "foods_resized/carrot_100.png", "veggie");
-            level1.addFood("bacon", "foods_resized/bacon_100.png", "meat");
-        }
-        Collections.shuffle(level1.waitingFoodQueue); //randomly shuffle waitingFoodQueue
-        System.out.println("size: " + level1.waitingFoodQueue.size());
-        */
+
         level1.start();
 
 
