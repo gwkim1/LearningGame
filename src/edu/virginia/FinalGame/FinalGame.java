@@ -27,7 +27,9 @@ public class FinalGame extends Game {
     private boolean playing;
     private boolean win;
     private boolean lose;
+    private int level;
     private final int TIME_BETWEEN_DROPS = 30;
+    private static int multiples = 5; //how many same food item would be included in a gameplay
     private int recentDropIndex;
     private int foodIndex;
     private int totalNumFoods;
@@ -41,6 +43,8 @@ public class FinalGame extends Game {
     private ArrayList<Sprite> bars = new ArrayList<>();
     private ArrayList<Sprite> waitingFoodQueue = new ArrayList<>();
     private ArrayList<Sprite> droppedFoodQueue = new ArrayList<>();
+    private ArrayList<String> filenames = new ArrayList<>();
+    private ArrayList<String> filecategories = new ArrayList<>();
     private Sprite player = new Sprite("player", "player.png");
     private SoundManager soundmanager = new SoundManager();
 
@@ -129,6 +133,9 @@ public class FinalGame extends Game {
     public FinalGame(int numBars, int gravity, int goal, int limit, ArrayList<String> categories, ArrayList<String> filenames, ArrayList<String> filecategories) {
         super("Final Game", gameWidth, gameHeight);
 
+        this.filenames = filenames;
+        this.filecategories = filecategories;
+        level = 1;
         playing = true;
         win = false;
         lose = false;
@@ -248,11 +255,13 @@ public class FinalGame extends Game {
         foodIndex = 0;
         totalNumFoods += 1;
         totalNumBars += 1;
-        //this.goal = goal;
-        //this.limit = limit;
-        //this.gravity = gravity;
-        //this.categories = categories;
+        goal += 1;
+        limit += 1;
+        level += 1;
 
+
+        waitingFoodQueue = new ArrayList<>();
+        droppedFoodQueue = new ArrayList<>();
         progressBarParams = new ArrayList<Integer>();
         bars = new ArrayList<Sprite>();
         stacks = new ArrayList<FoodStack>();
@@ -283,9 +292,47 @@ public class FinalGame extends Game {
             progressBarParams.add(0); //0 height at first
         }
 
+        if (level == 2) {
+            categories.add("fruit");
+            for (int i = 0; i < multiples; i++) {
+                filenames.add("foods_resized/lime_100.png");
+                filecategories.add("fruit");
+                filenames.add("foods_resized/melon_100.png");
+                filecategories.add("fruit");
+                filenames.add("foods_resized/pear_100.png");
+                filecategories.add("fruit");
+                filenames.add("foods_resized/pineapple_100.png");
+                filecategories.add("fruit");
+            }
+        }
+
+        if (level == 3) {
+            categories.add("dairy");
+            for (int i = 0; i < multiples; i++) {
+                filenames.add("foods_resized/icecream_100.png");
+                filecategories.add("dairy");
+                filenames.add("foods_resized/milk_100.png");
+                filecategories.add("dairy");
+                filenames.add("foods_resized/yogurt_100.png");
+                filecategories.add("dairy");
+                filenames.add("foods_resized/cheese_100.png");
+                filecategories.add("dairy");
+            }
+        }
+
         for (int i = 0; i < categories.size(); i++) {
             stacks.add(new FoodStack(goal, limit, categories.get(i)));
         }
+
+        for (int i = 0; i < filenames.size(); i++) {
+            this.addFood(filenames.get(i), filenames.get(i), filecategories.get(i));
+        }
+
+
+
+
+
+        Collections.shuffle(this.waitingFoodQueue);
     }
 
 
@@ -381,9 +428,15 @@ public class FinalGame extends Game {
         super.draw(g);
         player.draw(g);
 
-        if (!playing) {
-            g.drawString("GAME PAUSED", gameWidth * 3 / 4, gameHeight * 1 / 4);
-            //updateLevel();
+        if (!playing && win) {
+            //g.drawString("GAME PAUSED", gameWidth * 3 / 4, gameHeight * 1 / 4);
+            if (level <= 2)
+                updateLevel();
+            else
+                this.closeGame();
+        }
+        if (!playing && lose) {
+            g.drawString("GAME OVER", gameWidth * 3 / 4, gameHeight * 1 / 4);
         }
 
 
@@ -425,25 +478,47 @@ public class FinalGame extends Game {
         ArrayList<String> categories = new ArrayList<>();
         categories.add("veggie");
         categories.add("meat");
+        categories.add("grain");
+
+
+        // these would contain all 5 food groups: for lower levels, only use the lower indices
 
         ArrayList<String> filenames = new ArrayList<>();
         ArrayList<String> filecategories = new ArrayList<>();
 
-        for (int i = 0; i < 10; i++) {
-            filenames.add("foods_resized/avocado_100.png");
+
+        for (int i = 0; i < multiples; i++) {
+            filenames.add("foods_resized/beans_100.png");
             filecategories.add("veggie");
-            filenames.add("foods_resized/steak_100.png");
-            filecategories.add("meat");
-            filenames.add("foods_resized/carrot_100.png");
+            filenames.add("foods_resized/broccoli_100.png");
             filecategories.add("veggie");
-            filenames.add("foods_resized/bacon_100.png");
+            filenames.add("foods_resized/radish_100.png");
+            filecategories.add("veggie");
+            filenames.add("foods_resized/garlic_100.png");
+            filecategories.add("veggie");
+
+            filenames.add("foods_resized/shrimp_100.png");
             filecategories.add("meat");
+            filenames.add("foods_resized/dumpling_100.png");
+            filecategories.add("meat");
+            filenames.add("foods_resized/duck_100.png");
+            filecategories.add("meat");
+            filenames.add("foods_resized/fishcake_100.png");
+            filecategories.add("meat");
+
+            filenames.add("foods_resized/noodles_100.png");
+            filecategories.add("grain");
+            filenames.add("foods_resized/rice_100.png");
+            filecategories.add("grain");
+            filenames.add("foods_resized/sushi_100.png");
+            filecategories.add("grain");
+            filenames.add("foods_resized/grain_100.png");
+            filecategories.add("grain");
         }
 
-        FinalGame level1 = new FinalGame(3, 10, 3, 5, categories, filenames, filecategories);
+        FinalGame game = new FinalGame(3, 10, 1, 5, categories, filenames, filecategories);
 
-
-        level1.start();
+        game.start();
 
 
 
