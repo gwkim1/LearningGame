@@ -172,10 +172,10 @@ public class FinalGame extends Game {
         player.setHitbox(barGap,barHeight+10,40,80);
 
 
-        left.setPosition(gameWidth * 3/4 - 100, gameHeight * 1/2);
-        right.setPosition(gameWidth * 3/4 + 100, gameHeight * 1/2);
-        up.setPosition(gameWidth * 3/4, gameHeight * 1/2 - 100);
-        down.setPosition(gameWidth * 3/4, gameHeight * 1/2);
+        left.setPosition(gameWidth * 3/4 - 100, gameHeight /2);
+        right.setPosition(gameWidth * 3/4 + 100, gameHeight /2);
+        up.setPosition(gameWidth * 3/4, gameHeight /2 - 100);
+        down.setPosition(gameWidth * 3/4, gameHeight /2);
 
         //for the gameplay bars
         for (int i = 0; i < totalNumBars; i++) {
@@ -277,7 +277,7 @@ public class FinalGame extends Game {
         win = all_goals_reached;
         lose = !no_limit_reached;
 
-        if (win == true || lose == true) {
+        if (win || lose) {
             System.out.println("playing set to false, win: " + win + " lose: " + lose);
             playing = false;
         }
@@ -390,137 +390,131 @@ public class FinalGame extends Game {
 
     // run inside update only during tutorial stage
     private void updateTutorial(ArrayList<Integer> pressedKeys) {
-        String text = textTutorial.get(tutorialIndex);
-        tutorialTimeIndex += 1;
-        //for the first highlighting of character, move to next instruction after 20 frames
-        if (text == "highlight the character" && tutorialTimeIndex == 100) {
-            tutorialIndex += 1; //move to next step
-            tutorialTimeIndex = 0; //reset timer to 0
-        }
-        if (text == "push the right button" && pressedKeys.contains(KeyEvent.VK_RIGHT)) {
-            tutorialIndex += 1;
-            tutorialTimeIndex = 0;
-        }
-        if (text == "push the left button" && pressedKeys.contains(KeyEvent.VK_LEFT)) {
-            tutorialIndex += 1;
-            tutorialTimeIndex = 0;
-        }
-
-
+        try {
+            String text = textTutorial.get(tutorialIndex);
+            tutorialTimeIndex += 1;
+            //for the first highlighting of character, move to next instruction after 20 frames
+            if (text.equals("highlight the character") && tutorialTimeIndex == 100) {
+                tutorialIndex += 1; //move to next step
+                tutorialTimeIndex = 0; //reset timer to 0
+            }
+            if (text.equals("push the right button") && pressedKeys.contains(KeyEvent.VK_RIGHT)) {
+                tutorialIndex += 1;
+                tutorialTimeIndex = 0;
+            }
+            if (text.equals("push the left button") && pressedKeys.contains(KeyEvent.VK_LEFT)) {
+                tutorialIndex += 1;
+                tutorialTimeIndex = 0;
+            }
+        } catch (IndexOutOfBoundsException e) { }
 
         //for showing the food items, update would also be done at drawTutorial
     }
 
     // run inside draw only during tutorial stage
     private void drawTutorial(Graphics g) {
-        String text = textTutorial.get(tutorialIndex);
-        if (tutorialTimeIndex % 2 == 0)
-            g.setColor(new Color(255, 200, 100, 100)); //30 for transparency
-        else
-            g.setColor(new Color(200, 0, 100, 100)); //alternating colors for highlighting effect
+        try {
+            String text = textTutorial.get(tutorialIndex);
+            Color yellow = new Color(255, 200, 100, 100);
+            Color black = new Color (0,0,0,100);
 
-        if (text == "highlight the character") {
-            g.drawString("This is our character!", gameWidth * 3 / 4, gameHeight * 1 / 4);
-
-            g.fillRect(player.getPosition().x, player.getPosition().y, player.getUnscaledWidth(), player.getUnscaledHeight());
-
-        }
-        if (text == "push the right button") {
-            g.drawString("Push the right button!", gameWidth * 3 / 4, gameHeight * 1 / 4);
-
-            right.draw(g);
-            g.fillRect(right.getPosition().x, right.getPosition().y, right.getUnscaledWidth(), right.getUnscaledHeight());
-        }
-        if (text == "push the left button") {
-            g.drawString("Push the left button!", gameWidth * 3 / 4, gameHeight * 1 / 4);
-
-            left.draw(g);
-            g.fillRect(left.getPosition().x, left.getPosition().y, left.getUnscaledWidth(), left.getUnscaledHeight());
-        }
-        if (text == "drop & show the veggie group - food 1") {
-            g.drawString("These are beans!", gameWidth * 3 / 4, gameHeight * 1 / 4);
-            g.drawString("These are veggies!", gameWidth * 3 / 4, gameHeight * 1 / 4 + 10);
-
-            Sprite food = waitingFoodQueue.get(foodIndex);
-            if (tutorialTimeIndex == 0)
-                droppedFoodQueue.add(food);
-            else {
-                food.setPosition(food.getPosition().x, food.getPosition().y + gravity);
+            if (text.equals("highlight the character")) {
+                g.drawString("This is your character!", gameWidth * 3 / 4, gameHeight / 4);
+                g.setColor(yellow);
+                g.fillRect(player.getPosition().x, player.getPosition().y, player.getUnscaledWidth(), player.getUnscaledHeight());
+                g.setColor(black);
             }
-            food.draw(g);
+            if (text.equals("push the right button")) {
+                g.drawString("Push the right arrow!", gameWidth * 3 / 4, gameHeight / 4);
 
-            if (food.getPosition().y >= barHeight) {
-                tutorialIndex += 1;
-                tutorialTimeIndex = 0;
-                foodIndex += 1;
+                right.draw(g);
+                //g.fillRect(right.getPosition().x, right.getPosition().y, right.getUnscaledWidth(), right.getUnscaledHeight());
             }
-        }
-        if (text == "drop & show the veggie group - food 2") {
-            g.drawString("These are peppers!", gameWidth * 3 / 4, gameHeight * 1 / 4);
-            g.drawString("These are veggies!", gameWidth * 3 / 4, gameHeight * 1 / 4 + 10);
+            if (text.equals("push the left button")) {
+                g.drawString("Push the left arrow!", gameWidth * 3 / 4, gameHeight / 4);
 
-            Sprite food = waitingFoodQueue.get(foodIndex);
-            if (tutorialTimeIndex == 0)
-                droppedFoodQueue.add(food);
-            else {
-                food.setPosition(food.getPosition().x, food.getPosition().y + gravity);
+                left.draw(g);
+                //g.fillRect(left.getPosition().x, left.getPosition().y, left.getUnscaledWidth(), left.getUnscaledHeight());
             }
-            food.draw(g);
+            if (text.equals("drop & show the veggie group - food 1")) {
+                g.drawString("These are beans!", gameWidth * 3 / 4, gameHeight / 4);
+                g.drawString("Beans are veggies!", gameWidth * 3 / 4, gameHeight / 4 + 30);
 
-            if (food.getPosition().y >= barHeight) {
-                tutorialIndex += 1;
-                tutorialTimeIndex = 0;
-                foodIndex += 1;
+                Sprite food = waitingFoodQueue.get(foodIndex);
+                if (tutorialTimeIndex == 0)
+                    droppedFoodQueue.add(food);
+                else {
+                    food.setPosition(food.getPosition().x, food.getPosition().y + gravity);
+                }
+                food.draw(g);
+
+                if (food.getPosition().y >= barHeight) {
+                    tutorialIndex += 1;
+                    tutorialTimeIndex = 0;
+                    foodIndex += 1;
+                }
             }
-        }
+            if (text.equals("drop & show the veggie group - food 2")) {
+                g.drawString("These are peppers!", gameWidth * 3 / 4, gameHeight / 4);
+                g.drawString("Peppers are veggies!", gameWidth * 3 / 4, gameHeight / 4 + 30);
 
-        if (text == "collect radish!") {
-            g.drawString("collect radish!", gameWidth * 3 / 4, gameHeight * 1 / 4);
-            Sprite food = waitingFoodQueue.get(foodIndex);
+                Sprite food = waitingFoodQueue.get(foodIndex);
+                if (tutorialTimeIndex == 0)
+                    droppedFoodQueue.add(food);
+                else {
+                    food.setPosition(food.getPosition().x, food.getPosition().y + gravity);
+                }
+                food.draw(g);
 
-            if (tutorialTimeIndex == 0)
-                droppedFoodQueue.add(food);
-            else {
-                food.setPosition(food.getPosition().x, food.getPosition().y + gravity);
+                if (food.getPosition().y >= barHeight) {
+                    tutorialIndex += 1;
+                    tutorialTimeIndex = 0;
+                    foodIndex += 1;
+                }
             }
-            food.draw(g);
 
-            if (player.collidesWith(food) && food.getPosition().y <= barHeight) {
-                tutorialIndex += 1;
-                tutorialTimeIndex = 0;
-                foodIndex += 1;
+            if (text.equals("collect radish!")) {
+                g.drawString("collect radish!", gameWidth * 3 / 4, gameHeight / 4);
+                Sprite food = waitingFoodQueue.get(foodIndex);
+
+                if (tutorialTimeIndex == 0)
+                    droppedFoodQueue.add(food);
+                else {
+                    food.setPosition(food.getPosition().x, food.getPosition().y + gravity);
+                }
+                food.draw(g);
+
+                if (player.collidesWith(food) && food.getPosition().y <= barHeight) {
+                    tutorialIndex += 1;
+                    tutorialTimeIndex = 0;
+                    foodIndex += 1;
+                } else if (food.getPosition().y > barHeight) {
+                    food.setPosition(food.getPosition().x, 0);
+                }
             }
-            else if (food.getPosition().y > barHeight) {
-                food.setPosition(food.getPosition().x, 0);
+
+            if (text.equals("avoid garlic!")) {
+                g.drawString("avoid garlic!", gameWidth * 3 / 4, gameHeight / 4);
+                Sprite food = waitingFoodQueue.get(foodIndex);
+
+                if (tutorialTimeIndex == 0)
+                    droppedFoodQueue.add(food);
+                else {
+                    food.setPosition(food.getPosition().x, food.getPosition().y + gravity);
+                }
+                food.draw(g);
+
+                if (player.collidesWith(food) && food.getPosition().y <= barHeight) {
+                    food.setPosition(food.getPosition().x, 0);
+                } else if (food.getPosition().y > barHeight) {
+                    tutorialIndex += 1;
+                    tutorialTimeIndex = 0;
+                    foodIndex += 1;
+
+                    updateLevel(); //temporary end of tutorial
+                }
             }
-        }
-
-        if (text == "avoid garlic!") {
-            g.drawString("avoid garlic!", gameWidth * 3 / 4, gameHeight * 1 / 4);
-            Sprite food = waitingFoodQueue.get(foodIndex);
-
-            if (tutorialTimeIndex == 0)
-                droppedFoodQueue.add(food);
-            else {
-                food.setPosition(food.getPosition().x, food.getPosition().y + gravity);
-            }
-            food.draw(g);
-
-            if (player.collidesWith(food) && food.getPosition().y <= barHeight) {
-                food.setPosition(food.getPosition().x, 0);
-            }
-            else if (food.getPosition().y > barHeight) {
-                tutorialIndex += 1;
-                tutorialTimeIndex = 0;
-                foodIndex += 1;
-
-                updateLevel(); //temporary end of tutorial
-
-            }
-        }
-
-
-        g.setColor(new Color(0, 0, 0));
+        } catch (IndexOutOfBoundsException e) { }
     }
 
 
@@ -636,7 +630,7 @@ public class FinalGame extends Game {
                 this.closeGame();
         }
         if (!playing && lose) {
-            g.drawString("GAME OVER", gameWidth * 3 / 4, gameHeight * 1 / 4);
+            g.drawString("GAME OVER", gameWidth * 3 / 4, gameHeight / 4);
         }
 
 
@@ -653,6 +647,20 @@ public class FinalGame extends Game {
             for (int i = 0; i < bars.size(); i++) {
                 for (int j = 0; j < 4; j++) {
                     g2d.draw(bars.get(i).getHitbox().lines.get(j));
+                }
+            }
+            int progBarStart = bars.size()/2;
+            for (int i = progBarStart; i<bars.size(); i++) {
+                if (i==progBarStart) {
+                    g.drawString("VEGGIES", bars.get(i).getHitbox().p1.x+10, 30);
+                } else if (i==progBarStart+1){
+                    g.drawString("MEATS", bars.get(i).getHitbox().p1.x+10, 30);
+                } else if (i==progBarStart+2) {
+                    g.drawString("GRAINS", bars.get(i).getHitbox().p1.x+10, 30);
+                } else if (i==progBarStart+3) {
+                    g.drawString("FRUITS", bars.get(i).getHitbox().p1.x+10, 30);
+                } else if (i==progBarStart+4) {
+                    g.drawString("DAIRY", bars.get(i).getHitbox().p1.x+10, 30);
                 }
             }
 
