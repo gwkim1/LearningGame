@@ -1,0 +1,8 @@
+-added highlighting to bars
+-drop multiple foods at same height depending on level
+    -2 for level 2
+    -3 for level 3
+-fix food not disappearing in tutorial
+-change goal lines for each bar
+-enable pause for tutorial
+-add breaks between each level?

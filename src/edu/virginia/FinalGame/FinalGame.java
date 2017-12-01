@@ -724,7 +724,7 @@ public class FinalGame extends Game {
             filecategories.add("grain");
         }
 
-        FinalGame game = new FinalGame(3, 5, 1, 5, categories, filenames, filecategories);
+        FinalGame game = new FinalGame(3, 3, 1, 5, categories, filenames, filecategories);
 
         game.start();
 
