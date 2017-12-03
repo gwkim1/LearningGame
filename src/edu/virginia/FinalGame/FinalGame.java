@@ -675,13 +675,52 @@ public class FinalGame extends Game {
             // drop next food on a timed interval
             // if timer for this food exceeded TIME_BETWEEN_DROPS and there are more foods to come, reset dropindex
             // pick the most recent food from watingFoodQueue and add to droppedFoodQueue
+            if (level == 2) {
+                if (foodIndex % 2 == 1) {
+                    if (recentDropIndex >= TIME_BETWEEN_DROPS && foodIndex < totalNumFoods) {
+                        recentDropIndex = 0;
+                        droppedFoodQueue.add(waitingFoodQueue.get(foodIndex));
+                        foodIndex++;
+                    }
+                }
+                else {
+                    //shorter interval, as if multiple foods are almost falling together
+                    if (recentDropIndex >= 1 && foodIndex < totalNumFoods) {
+                        recentDropIndex = 0;
+                        droppedFoodQueue.add(waitingFoodQueue.get(foodIndex));
+                        foodIndex++;
+                    }
+                }
+                recentDropIndex++;
+            }
+
+            if (level == 3) {
+                if (foodIndex % 3 == 2) {
+                    if (recentDropIndex >= TIME_BETWEEN_DROPS && foodIndex < totalNumFoods) {
+                        recentDropIndex = 0;
+                        droppedFoodQueue.add(waitingFoodQueue.get(foodIndex));
+                        foodIndex++;
+                    }
+                }
+                else {
+                    //shorter interval, as if
+                    if (recentDropIndex >= 1 && foodIndex < totalNumFoods) {
+                        recentDropIndex = 0;
+                        droppedFoodQueue.add(waitingFoodQueue.get(foodIndex));
+                        foodIndex++;
+                    }
+                }
+            }
+
+            /*
             if (recentDropIndex >= TIME_BETWEEN_DROPS && foodIndex < totalNumFoods) {
                 recentDropIndex = 0;
                 droppedFoodQueue.add(waitingFoodQueue.get(foodIndex));
                 foodIndex++;
             }
-            recentDropIndex++;
 
+            recentDropIndex++;
+            */
             //update each food position by applying gravity
             //System.out.println("waitingFoodQueue size: " + waitingFoodQueue.size());
             //System.out.println("droppedFoodQueue size: " + droppedFoodQueue.size());
