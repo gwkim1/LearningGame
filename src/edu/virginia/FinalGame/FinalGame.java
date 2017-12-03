@@ -265,20 +265,21 @@ public class FinalGame extends Game {
         //win and lose would be false if this function is called
         boolean no_limit_reached = true; //first assume no limits are reached
         boolean all_goals_reached = true; //also assume not all goals are reached
-        for (int i = 0; i < stacks.size(); i++) {
-            FoodStack stack = stacks.get(i);
-            //System.out.println("size of " + stack.id + " " + stack.stack.size());
-            if (stack.reachedLimit()) { //if a stack has exceeded limit
-                //System.out.println("this stack reached limit");
-                no_limit_reached = false;
-            }
-            if (!stack.reachedGoal()) { //if any one of the stacks have not reached goal, break. win = false
-                //System.out.println("this stack did not reach goal");
-                all_goals_reached = false;
-            }
+        if (stacks != null) {
+            for (int i = 0; i < stacks.size(); i++) {
+                FoodStack stack = stacks.get(i);
+                //System.out.println("size of " + stack.id + " " + stack.stack.size());
+                if (stack.reachedLimit()) { //if a stack has exceeded limit
+                    //System.out.println("this stack reached limit");
+                    no_limit_reached = false;
+                }
+                if (!stack.reachedGoal()) { //if any one of the stacks have not reached goal, break. win = false
+                    //System.out.println("this stack did not reach goal");
+                    all_goals_reached = false;
+                }
 
+            }
         }
-
         win = all_goals_reached;
         lose = !no_limit_reached;
 
@@ -293,12 +294,14 @@ public class FinalGame extends Game {
 
     //updates the position of each g2d fillRect parameters (just y and barHeight) based on each food stack's size
     private void updateProgressBar() {
-        for (int i = 0; i < stacks.size(); i++) {
-            FoodStack stack = stacks.get(i);
-            //the y coordinate of the ith bar: barheight - stacksize * height per each food
-            progressBarParams.set(4*i + 1, barHeight - stack.stack.size() * barHeight / limit );
-            //the height of the bar: stacksize * height per each food
-            progressBarParams.set(4*i + 3, stack.stack.size() * barHeight / limit );
+        if (stacks != null) {
+            for (int i = 0; i < stacks.size(); i++) {
+                FoodStack stack = stacks.get(i);
+                //the y coordinate of the ith bar: barheight - stacksize * height per each food
+                progressBarParams.set(4 * i + 1, barHeight - stack.stack.size() * barHeight / limit);
+                //the height of the bar: stacksize * height per each food
+                progressBarParams.set(4 * i + 3, stack.stack.size() * barHeight / limit);
+            }
         }
     }
 
@@ -324,6 +327,7 @@ public class FinalGame extends Game {
         bars = new ArrayList<Sprite>();
         for (int i=0; i<stacks.size(); i++) {
             stacks.get(i).reset();
+            stacks.get(i).limit = limit;
         }
         //stacks = new ArrayList<FoodStack>();
 
@@ -426,13 +430,12 @@ public class FinalGame extends Game {
         try {
             String text = textTutorial.get(tutorialIndex);
             Color yellow = new Color(255, 200, 100, 100);
-            Color black = new Color (0,0,0,100);
 
             if (text.equals("highlight the character")) {
                 g.drawString("This is your character!", gameWidth * 3 / 4, gameHeight / 4);
                 g.setColor(yellow);
                 g.fillRect(player.getPosition().x, player.getPosition().y, player.getUnscaledWidth(), player.getUnscaledHeight());
-                g.setColor(black);
+                g.setColor(Color.BLACK);
             }
             if (text.equals("push the right button")) {
                 g.drawString("Push the right arrow!", gameWidth * 3 / 4, gameHeight / 4);
@@ -597,6 +600,9 @@ public class FinalGame extends Game {
                     !previousPressedKeys.contains(KeyEvent.VK_RIGHT)) {
                 player.setPosition(player.getPosition().x + barWidth + barGap, player.getPosition().y);
             }
+            if (pressedKeys.contains(KeyEvent.VK_U)) {
+                this.updateLevel(); // for testing purposes
+            }
         }
 
 
@@ -663,7 +669,6 @@ public class FinalGame extends Game {
             Color yellow = new Color(255, 200, 100, 100);
             Color green = new Color(100, 200, 100, 100);
             Color red = new Color(255, 100, 100, 100);
-            Color black = new Color (0,0,0,100);
 
             int progBarStart = bars.size()/2;
             for (int i = progBarStart; i<bars.size(); i++) {
@@ -685,7 +690,7 @@ public class FinalGame extends Game {
                 if (currentProgress < currentStack.goal) {
                     // green highlight
                     g2d.setColor(green);
-                } else if (currentProgress >= currentStack.goal && currentProgress < currentStack.limit) {
+                } else if (currentProgress >= currentStack.goal && currentProgress < currentStack.limit-1) {
                     // yellow highlight
                     g2d.setColor(yellow);
                 } else {
