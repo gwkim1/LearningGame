@@ -660,6 +660,11 @@ public class FinalGame extends Game {
                 }
             }
 
+            Color yellow = new Color(255, 200, 100, 100);
+            Color green = new Color(100, 200, 100, 100);
+            Color red = new Color(255, 100, 100, 100);
+            Color black = new Color (0,0,0,100);
+
             int progBarStart = bars.size()/2;
             for (int i = progBarStart; i<bars.size(); i++) {
                 if (i==progBarStart) {
@@ -673,6 +678,25 @@ public class FinalGame extends Game {
                 } else if (i==progBarStart+4) {
                     g.drawString("DAIRY", bars.get(i).getHitbox().p1.x+10, 30);
                 }
+
+                FoodStack currentStack = stacks.get(i-progBarStart);
+                Hitbox currentBar = bars.get(i).getHitbox();
+                int currentProgress = currentStack.stack.size();
+                if (currentProgress < currentStack.goal) {
+                    // green highlight
+                    g2d.setColor(green);
+                } else if (currentProgress >= currentStack.goal && currentProgress < currentStack.limit) {
+                    // yellow highlight
+                    g2d.setColor(yellow);
+                } else {
+                    // red highlight
+                    g2d.setColor(red);
+                }
+                g2d.fillRect(currentBar.p1.x,
+                             currentBar.p1.y,
+                        currentBar.p2.x - currentBar.p1.x,
+                        currentBar.p4.y - currentBar.p1.y);
+                g2d.setColor(Color.BLACK);
             }
 
             for (int i=0; i<categories.size(); i++) {
@@ -739,7 +763,7 @@ public class FinalGame extends Game {
             filecategories.add("grain");
         }
 
-        FinalGame game = new FinalGame(3, 4, 2, 5, categories, filenames, filecategories);
+        FinalGame game = new FinalGame(3, 4, 2, 6, categories, filenames, filecategories);
 
         game.start();
 
