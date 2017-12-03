@@ -122,7 +122,8 @@ public class FinalGame extends Game {
         private void push(Sprite s) {
             stack.add(0, s); //at head of list
             System.out.println("pushed to " + id + ", new size: " + stack.size());
-        };
+        }
+        private void reset() {stack.clear();}
         private Sprite pop() {
             return stack.remove(0); //remove from the beginning. subsequent elements shifted
         };
@@ -201,9 +202,13 @@ public class FinalGame extends Game {
         }
 
 
-        for (int i = 0; i < categories.size(); i++) {
-            stacks.add(new FoodStack(goal, limit, categories.get(i)));
-        }
+        //for (int i = 0; i < categories.size(); i++) {
+        //    stacks.add(new FoodStack(goal, limit, categories.get(i)));
+        //}
+        stacks.add(new FoodStack(goal+1, limit, categories.get(0))); // veggies
+        stacks.add(new FoodStack(goal-1, limit, categories.get(1))); // meats
+        stacks.add(new FoodStack(goal, limit, categories.get(2))); // grains
+
 
         for (int i = 0; i < filenames.size(); i++) {
             this.addFood(filenames.get(i), filenames.get(i), filecategories.get(i));
@@ -317,7 +322,10 @@ public class FinalGame extends Game {
         droppedFoodQueue = new ArrayList<>();
         progressBarParams = new ArrayList<Integer>();
         bars = new ArrayList<Sprite>();
-        stacks = new ArrayList<FoodStack>();
+        for (int i=0; i<stacks.size(); i++) {
+            stacks.get(i).reset();
+        }
+        //stacks = new ArrayList<FoodStack>();
 
         player.setPosition(barGap, barHeight + 10);
         player.setHitbox(barGap,barHeight+10,40,80);
@@ -357,6 +365,7 @@ public class FinalGame extends Game {
                 filenames.add("foods_resized/pineapple_100.png");
                 filecategories.add("fruit");
             }
+            stacks.add(new FoodStack(goal+2, limit, categories.get(3))); // fruits
         }
 
         if (level == 3) {
@@ -371,11 +380,12 @@ public class FinalGame extends Game {
                 filenames.add("foods_resized/cheese_100.png");
                 filecategories.add("dairy");
             }
+            stacks.add(new FoodStack(goal-2, limit, categories.get(4))); // dairy
         }
 
-        for (int i = 0; i < categories.size(); i++) {
-            stacks.add(new FoodStack(goal, limit, categories.get(i)));
-        }
+        //for (int i = 0; i < categories.size(); i++) {
+        //    stacks.add(new FoodStack(goal, limit, categories.get(i)));
+        //}
 
         for (int i = 0; i < filenames.size(); i++) {
             this.addFood(filenames.get(i), filenames.get(i), filecategories.get(i));
@@ -649,6 +659,7 @@ public class FinalGame extends Game {
                     g2d.draw(bars.get(i).getHitbox().lines.get(j));
                 }
             }
+
             int progBarStart = bars.size()/2;
             for (int i = progBarStart; i<bars.size(); i++) {
                 if (i==progBarStart) {
@@ -664,9 +675,13 @@ public class FinalGame extends Game {
                 }
             }
 
-            //also draw the goal line
-            g2d.draw(new Line2D.Float(playProgressGap + (barWidth + barGap) * totalNumBars, barHeight * (1 - goal / (float) limit), playProgressGap + (barWidth + barGap) * totalNumBars * 2 - barGap, barHeight * (1 - goal / (float) limit)));
-
+            for (int i=0; i<categories.size(); i++) {
+                //also draw the goal line
+                g2d.draw(new Line2D.Float(playProgressGap + (barWidth + barGap) * (progBarStart+i),
+                        barHeight * (1 - stacks.get(i).goal / (float) limit),
+                        playProgressGap + (barWidth + barGap) * (progBarStart+i+1) - barGap,
+                        barHeight * (1 - stacks.get(i).goal / (float) limit)));
+            }
 
             for (int i = 0; i < totalNumBars; i++) {
                 g2d.fillRect(progressBarParams.get(i * 4), progressBarParams.get(i * 4 + 1), progressBarParams.get(i * 4 + 2), progressBarParams.get(i * 4 + 3));
@@ -724,7 +739,7 @@ public class FinalGame extends Game {
             filecategories.add("grain");
         }
 
-        FinalGame game = new FinalGame(3, 3, 1, 5, categories, filenames, filecategories);
+        FinalGame game = new FinalGame(3, 4, 2, 5, categories, filenames, filecategories);
 
         game.start();
 
