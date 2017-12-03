@@ -7,10 +7,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import edu.virginia.engine.display.Sprite;
-import edu.virginia.engine.display.AnimatedSprite;
+//import edu.virginia.engine.display.AnimatedSprite;
 import edu.virginia.engine.display.Game;
 import edu.virginia.engine.display.SoundManager;
-import edu.virginia.engine.display.DisplayObject;
+//import edu.virginia.engine.display.DisplayObject;
 
 public class FinalGame extends Game {
 
@@ -32,8 +32,9 @@ public class FinalGame extends Game {
     private boolean lose;
     private boolean tutorial;
     private int level;
-    private final int TIME_BETWEEN_DROPS = 30;
-    private static int multiples = 5; //how many same food item would be included in a gameplay
+    private final int TIME_BETWEEN_DROPS = 70;
+    private final int TUTORIAL_PAUSE = 30;
+    private static int multiples = 20; //how many same food item would be included in a gameplay
     private int recentDropIndex;
     private int foodIndex;
     private int totalNumFoods;
@@ -221,26 +222,22 @@ public class FinalGame extends Game {
         this.textTutorial.add("highlight the character");
         this.textTutorial.add("push the right button");
         this.textTutorial.add("push the left button");
-        this.textTutorial.add("drop & show the veggie group - food 1");
-        this.textTutorial.add("drop & show the veggie group - food 2"); //should we do this?
-        /*
-        this.textTutorial.add("drop & show the veggie group - food 3");
-        this.textTutorial.add("drop & show the veggie group - food 4");
-        this.textTutorial.add("drop & show the meat group - food 1");
-        this.textTutorial.add("drop & show the meat group - food 2");
-        this.textTutorial.add("drop & show the meat group - food 3");
-        this.textTutorial.add("drop & show the meat group - food 4");
-        this.textTutorial.add("drop & show the grain group - food 1");
-        this.textTutorial.add("drop & show the grain group - food 2");
-        this.textTutorial.add("drop & show the grain group - food 3");
-        this.textTutorial.add("drop & show the grain group - food 4");
-        */
+
+        //each food item is involved in the tutorial. will also introduce each food
         this.textTutorial.add("collect radish!");
         this.textTutorial.add("avoid garlic!");
-        this.textTutorial.add("collect shrimp and see the meat bar go up!");
-
-
-
+        this.textTutorial.add("collect sushi!");
+        this.textTutorial.add("avoid brown rice!");
+        this.textTutorial.add("collect noodles, grain bar goes up!");
+        this.textTutorial.add("collect pepper, veggie bar goes up!");
+        this.textTutorial.add("collect shrimp, meat bar goes up, goal reached!");
+        this.textTutorial.add("collect rice, grain bar goes up, goal reached!");
+        this.textTutorial.add("collect dumpling, meat bar goes up!");
+        this.textTutorial.add("collect duck, meat bar goes up!");
+        this.textTutorial.add("collect fishcake, meat bar goes up, limit reached!");
+        this.textTutorial.add("collect beans, veggie bar goes up!");
+        this.textTutorial.add("collect garlic, veggie bar goes up, goal reached!");
+        this.textTutorial.add("great job! now, let's play the game!");
     }
 
 
@@ -285,7 +282,8 @@ public class FinalGame extends Game {
 
         if (win || lose) {
             System.out.println("playing set to false, win: " + win + " lose: " + lose);
-            playing = false;
+            if (!tutorial)
+                playing = false; //for tutorial, how a game can be lost would be shown and game resumed
         }
 
     }
@@ -316,8 +314,6 @@ public class FinalGame extends Game {
         foodIndex = 0;
         totalNumFoods += 1;
         totalNumBars += 1;
-        goal += 1;
-        limit += 1;
         level += 1;
 
 
@@ -358,6 +354,7 @@ public class FinalGame extends Game {
         }
 
         if (level == 2) {
+
             categories.add("fruit");
             for (int i = 0; i < multiples; i++) {
                 filenames.add("foods_resized/lime_100.png");
@@ -369,10 +366,18 @@ public class FinalGame extends Game {
                 filenames.add("foods_resized/pineapple_100.png");
                 filecategories.add("fruit");
             }
+            goal = 3;
+            limit = 8;
+            stacks = new ArrayList<>();
+            stacks.add(new FoodStack(goal+1, limit, categories.get(0))); // veggies
+            stacks.add(new FoodStack(goal-1, limit, categories.get(1))); // meats
+            stacks.add(new FoodStack(goal, limit, categories.get(2))); // grains
             stacks.add(new FoodStack(goal+2, limit, categories.get(3))); // fruits
+            //bars = new ArrayList<>();
         }
 
         if (level == 3) {
+
             categories.add("dairy");
             for (int i = 0; i < multiples; i++) {
                 filenames.add("foods_resized/icecream_100.png");
@@ -384,6 +389,14 @@ public class FinalGame extends Game {
                 filenames.add("foods_resized/cheese_100.png");
                 filecategories.add("dairy");
             }
+
+            goal = 4;
+            limit = 8;
+            stacks = new ArrayList<>();
+            stacks.add(new FoodStack(goal+1, limit, categories.get(0))); // veggies
+            stacks.add(new FoodStack(goal-1, limit, categories.get(1))); // meats
+            stacks.add(new FoodStack(goal, limit, categories.get(2))); // grains
+            stacks.add(new FoodStack(goal+2, limit, categories.get(3))); // fruits
             stacks.add(new FoodStack(goal-2, limit, categories.get(4))); // dairy
         }
 
@@ -406,6 +419,7 @@ public class FinalGame extends Game {
     private void updateTutorial(ArrayList<Integer> pressedKeys) {
         try {
             String text = textTutorial.get(tutorialIndex);
+            System.out.println(text);
             tutorialTimeIndex += 1;
             //for the first highlighting of character, move to next instruction after 20 frames
             if (text.equals("highlight the character") && tutorialTimeIndex == 100) {
@@ -422,7 +436,48 @@ public class FinalGame extends Game {
             }
         } catch (IndexOutOfBoundsException e) { }
 
-        //for showing the food items, update would also be done at drawTutorial
+    }
+
+    private void dropFoodsForTutorial(Graphics g, boolean collect, boolean tutorialEnd, boolean updateBar) {
+        Sprite food = waitingFoodQueue.get(foodIndex);
+        if (tutorialTimeIndex == 0)
+            droppedFoodQueue.add(food);
+        else {
+            food.setPosition(food.getPosition().x, food.getPosition().y + gravity);
+        }
+        food.draw(g);
+
+        if (player.collidesWith(food) && food.getPosition().y <= barHeight) {
+
+            if (updateBar) {
+                stacks.get(categories.indexOf(food.foodType)).push(food);
+            }
+
+            if (collect) {
+                tutorialIndex += 1;
+                tutorialTimeIndex = 0;
+                foodIndex += 1;
+
+                if (tutorialEnd)
+                    updateLevel();
+            }
+            else {
+                food.setPosition(food.getPosition().x, 0);
+            }
+        } else if (food.getPosition().y > barHeight) {
+            if (!collect) {
+                tutorialIndex += 1;
+                tutorialTimeIndex = 0;
+                foodIndex += 1;
+                if (tutorialEnd)
+                    updateLevel();
+            }
+            else {
+                food.setPosition(food.getPosition().x, 0);
+            }
+        }
+
+
     }
 
     // run inside draw only during tutorial stage
@@ -430,10 +485,13 @@ public class FinalGame extends Game {
         try {
             String text = textTutorial.get(tutorialIndex);
             Color yellow = new Color(255, 200, 100, 100);
-
+            Color orange = new Color(255, 120, 82, 100);
             if (text.equals("highlight the character")) {
                 g.drawString("This is your character!", gameWidth * 3 / 4, gameHeight / 4);
-                g.setColor(yellow);
+                if (tutorialTimeIndex % 6 <= 2)
+                    g.setColor(yellow);
+                else
+                    g.setColor(orange);
                 g.fillRect(player.getPosition().x, player.getPosition().y, player.getUnscaledWidth(), player.getUnscaledHeight());
                 g.setColor(Color.BLACK);
             }
@@ -449,84 +507,145 @@ public class FinalGame extends Game {
                 left.draw(g);
                 //g.fillRect(left.getPosition().x, left.getPosition().y, left.getUnscaledWidth(), left.getUnscaledHeight());
             }
-            if (text.equals("drop & show the veggie group - food 1")) {
-                g.drawString("These are beans!", gameWidth * 3 / 4, gameHeight / 4);
-                g.drawString("Beans are veggies!", gameWidth * 3 / 4, gameHeight / 4 + 30);
-
-                Sprite food = waitingFoodQueue.get(foodIndex);
-                if (tutorialTimeIndex == 0)
-                    droppedFoodQueue.add(food);
-                else {
-                    food.setPosition(food.getPosition().x, food.getPosition().y + gravity);
-                }
-                food.draw(g);
-
-                if (food.getPosition().y >= barHeight) {
-                    tutorialIndex += 1;
-                    tutorialTimeIndex = 0;
-                    foodIndex += 1;
-                }
-            }
-            if (text.equals("drop & show the veggie group - food 2")) {
-                g.drawString("These are peppers!", gameWidth * 3 / 4, gameHeight / 4);
-                g.drawString("Peppers are veggies!", gameWidth * 3 / 4, gameHeight / 4 + 30);
-
-                Sprite food = waitingFoodQueue.get(foodIndex);
-                if (tutorialTimeIndex == 0)
-                    droppedFoodQueue.add(food);
-                else {
-                    food.setPosition(food.getPosition().x, food.getPosition().y + gravity);
-                }
-                food.draw(g);
-
-                if (food.getPosition().y >= barHeight) {
-                    tutorialIndex += 1;
-                    tutorialTimeIndex = 0;
-                    foodIndex += 1;
-                }
-            }
 
             if (text.equals("collect radish!")) {
                 g.drawString("collect radish!", gameWidth * 3 / 4, gameHeight / 4);
-                Sprite food = waitingFoodQueue.get(foodIndex);
-
-                if (tutorialTimeIndex == 0)
-                    droppedFoodQueue.add(food);
-                else {
-                    food.setPosition(food.getPosition().x, food.getPosition().y + gravity);
-                }
-                food.draw(g);
-
-                if (player.collidesWith(food) && food.getPosition().y <= barHeight) {
-                    tutorialIndex += 1;
-                    tutorialTimeIndex = 0;
-                    foodIndex += 1;
-                } else if (food.getPosition().y > barHeight) {
-                    food.setPosition(food.getPosition().x, 0);
-                }
+                g.drawString("radish is a veggie!", gameWidth * 3 / 4, gameHeight / 3);
+                dropFoodsForTutorial(g, true, false, false);
             }
 
             if (text.equals("avoid garlic!")) {
                 g.drawString("avoid garlic!", gameWidth * 3 / 4, gameHeight / 4);
-                Sprite food = waitingFoodQueue.get(foodIndex);
+                g.drawString("garlic is a veggie!", gameWidth * 3 / 4, gameHeight / 3);
+                dropFoodsForTutorial(g, false, false, false);
+            }
 
-                if (tutorialTimeIndex == 0)
-                    droppedFoodQueue.add(food);
-                else {
-                    food.setPosition(food.getPosition().x, food.getPosition().y + gravity);
+            if (text.equals("collect sushi!")) {
+                g.drawString("collect sushi!", gameWidth * 3 / 4, gameHeight / 4);
+                g.drawString("sushi is a grain!", gameWidth * 3 / 4, gameHeight / 3);
+                dropFoodsForTutorial(g, true, false, false);
+            }
+
+            if (text.equals("avoid brown rice!")) {
+                g.drawString("avoid brown rice!", gameWidth * 3 / 4, gameHeight / 4);
+                g.drawString("brown rice is a grain!", gameWidth * 3 / 4, gameHeight / 3);
+                dropFoodsForTutorial(g, false, false, false);
+            }
+
+            if (text.equals("collect noodles, grain bar goes up!")) {
+                g.drawString("collect noodles, grain bar goes up!", gameWidth * 3 / 4, gameHeight / 4);
+                g.drawString("noodles is a grain!", gameWidth * 3 / 4, gameHeight / 3);
+                dropFoodsForTutorial(g, true, false, true);
+            }
+
+            if (text.equals("collect pepper, veggie bar goes up!")) {
+                if (tutorialTimeIndex <= TUTORIAL_PAUSE) {
+                    g.drawString("the grain bar went up!", gameWidth * 3 / 4, gameHeight / 4);
                 }
-                food.draw(g);
-
-                if (player.collidesWith(food) && food.getPosition().y <= barHeight) {
-                    food.setPosition(food.getPosition().x, 0);
-                } else if (food.getPosition().y > barHeight) {
-                    tutorialIndex += 1;
-                    tutorialTimeIndex = 0;
-                    foodIndex += 1;
-
-                    updateLevel(); //temporary end of tutorial
+                else {
+                    g.drawString("collect pepper, veggie bar goes up!", gameWidth * 3 / 4, gameHeight / 4);
+                    g.drawString("pepper is a veggie!", gameWidth * 3 / 4, gameHeight / 3);
+                    dropFoodsForTutorial(g, true, false, true);
                 }
             }
+
+            if (text.equals("collect shrimp, meat bar goes up, goal reached!")) {
+                if (tutorialTimeIndex <= TUTORIAL_PAUSE) {
+                    g.drawString("the veggie bar went up!", gameWidth * 3 / 4, gameHeight / 4);
+                }
+                else {
+                    g.drawString("collect shrimp, meat bar goes up, goal reached!", gameWidth * 3 / 4, gameHeight / 4);
+                    g.drawString("shrimp is a meat!", gameWidth * 3 / 4, gameHeight / 3);
+                    dropFoodsForTutorial(g, true, false, true);
+                }
+            }
+
+            if (text.equals("collect rice, grain bar goes up, goal reached!")) {
+                if (tutorialTimeIndex <= TUTORIAL_PAUSE) {
+                    g.drawString("the meat bar went up!", gameWidth * 3 / 4, gameHeight / 4);
+                    g.drawString("goal reached!", gameWidth * 3 / 4, gameHeight / 3);
+                }
+                else {
+                    g.drawString("collect rice, grain bar goes up, goal reached!", gameWidth * 3 / 4, gameHeight / 4);
+                    g.drawString("rice is a grain!", gameWidth * 3 / 4, gameHeight / 3);
+                    dropFoodsForTutorial(g, true, false, true);
+                }
+            }
+
+            if (text.equals("collect dumpling, meat bar goes up!")) {
+                if (tutorialTimeIndex <= TUTORIAL_PAUSE) {
+                    g.drawString("the grain bar went up!", gameWidth * 3 / 4, gameHeight / 4);
+                    g.drawString("goal reached!", gameWidth * 3 / 4, gameHeight / 3);
+                }
+                else {
+                    g.drawString("collect dumpling, meat bar goes up!", gameWidth * 3 / 4, gameHeight / 4);
+                    g.drawString("dumpling is a meat!", gameWidth * 3 / 4, gameHeight / 3);
+                    dropFoodsForTutorial(g, true, false, true);
+                }
+            }
+
+            if (text.equals("collect duck, meat bar goes up!")) {
+                if (tutorialTimeIndex <= TUTORIAL_PAUSE) {
+                    g.drawString("the meat bar went up!", gameWidth * 3 / 4, gameHeight / 4);
+                }
+                else {
+                    g.drawString("collect duck, meat bar goes up!", gameWidth * 3 / 4, gameHeight / 4);
+                    g.drawString("duck is a meat!", gameWidth * 3 / 4, gameHeight / 3);
+                    dropFoodsForTutorial(g, true, false, true);
+                }
+            }
+
+            if (text.equals("collect fishcake, meat bar goes up, limit reached!")) {
+                if (tutorialTimeIndex <= TUTORIAL_PAUSE) {
+                    g.drawString("the meat bar went up!", gameWidth * 3 / 4, gameHeight / 4);
+                    g.drawString("danger! if you eat more you will lose!", gameWidth * 3 / 4, gameHeight / 3);
+                }
+                else {
+                    g.drawString("collect fishcake, meat bar goes up!", gameWidth * 3 / 4, gameHeight / 4);
+                    g.drawString("fishcake is a meat!", gameWidth * 3 / 4, gameHeight / 3);
+                    dropFoodsForTutorial(g, true, false, true);
+                }
+            }
+
+            if (text.equals("collect beans, veggie bar goes up!")) {
+                System.out.println(this.playing);
+                if (tutorialTimeIndex == TUTORIAL_PAUSE * 2 - 1) {
+                    //System.out.println(stacks.get(1).size());
+                    stacks.get(1).pop();
+                    //System.out.println(stacks.get(1).size());
+                }
+                if (tutorialTimeIndex <= TUTORIAL_PAUSE * 2) {
+                    g.drawString("the meat bar went up!", gameWidth * 3 / 4, gameHeight / 4);
+                    g.drawString("limit reached! don't eat too much!", gameWidth * 3 / 4, gameHeight / 3);
+                }
+                else {
+                    g.drawString("collect beans, veggie bar goes up!", gameWidth * 3 / 4, gameHeight / 4);
+                    g.drawString("beans is a veggie!", gameWidth * 3 / 4, gameHeight / 3);
+                    dropFoodsForTutorial(g, true, false, true);
+                }
+            }
+
+            if (text.equals("collect garlic, veggie bar goes up, goal reached!")) {
+                System.out.println(this.playing);
+                if (tutorialTimeIndex <= TUTORIAL_PAUSE) {
+                    g.drawString("the veggie bar went up!", gameWidth * 3 / 4, gameHeight / 4);
+                }
+                else {
+                    g.drawString("collect garlic, veggie bar goes up, goal reached!", gameWidth * 3 / 4, gameHeight / 4);
+                    g.drawString("garlic is a veggie!", gameWidth * 3 / 4, gameHeight / 3);
+                    dropFoodsForTutorial(g, true, false, true);
+                }
+            }
+
+            if (text.equals("great job! now, let's play the game!")) {
+                if (tutorialTimeIndex <= 2*TUTORIAL_PAUSE) {
+                    g.drawString("great job! now, let's play the game!", gameWidth * 3 / 4, gameHeight / 4);
+                }
+                else
+                    updateLevel();
+            }
+
+
         } catch (IndexOutOfBoundsException e) { }
     }
 
@@ -548,6 +667,11 @@ public class FinalGame extends Game {
 
 
         if (playing && !tutorial) {
+
+
+
+
+
             // drop next food on a timed interval
             // if timer for this food exceeded TIME_BETWEEN_DROPS and there are more foods to come, reset dropindex
             // pick the most recent food from watingFoodQueue and add to droppedFoodQueue
@@ -649,12 +773,13 @@ public class FinalGame extends Game {
             g.drawString("GAME OVER", gameWidth * 3 / 4, gameHeight / 4);
         }
 
-
-        for (int i = 0; i < droppedFoodQueue.size(); i++) {
-            droppedFoodQueue.get(i).draw(g);
+        if (!tutorial) {
+            for (int i = 0; i < droppedFoodQueue.size(); i++) {
+                droppedFoodQueue.get(i).draw(g);
+            }
         }
 
-        if (win) {
+        if (win && !tutorial) {
             g.drawString("YOU WIN!", 10, 100);
             this.stop();
         } else {
@@ -738,37 +863,48 @@ public class FinalGame extends Game {
         ArrayList<String> filenames = new ArrayList<>();
         ArrayList<String> filecategories = new ArrayList<>();
 
-
         for (int i = 0; i < multiples; i++) {
-            filenames.add("foods_resized/beans_100.png");
-            filecategories.add("veggie");
-            filenames.add("foods_resized/pepper_100.png");
-            filecategories.add("veggie");
+            //according to the tutorial sequence
             filenames.add("foods_resized/radish_100.png");
             filecategories.add("veggie");
             filenames.add("foods_resized/garlic_100.png");
             filecategories.add("veggie");
+            filenames.add("foods_resized/sushi_100.png");
+            filecategories.add("grain");
+            filenames.add("foods_resized/brownrice_100.png");
+            filecategories.add("grain");
 
+            filenames.add("foods_resized/noodles_100.png");
+            filecategories.add("grain");
+            filenames.add("foods_resized/pepper_100.png");
+            filecategories.add("veggie");
             filenames.add("foods_resized/shrimp_100.png");
             filecategories.add("meat");
+            filenames.add("foods_resized/rice_100.png");
+            filecategories.add("grain");
             filenames.add("foods_resized/dumpling_100.png");
             filecategories.add("meat");
             filenames.add("foods_resized/duck_100.png");
             filecategories.add("meat");
             filenames.add("foods_resized/fishcake_100.png");
             filecategories.add("meat");
+            filenames.add("foods_resized/beans_100.png");
+            filecategories.add("veggie");
 
-            filenames.add("foods_resized/noodles_100.png");
-            filecategories.add("grain");
-            filenames.add("foods_resized/rice_100.png");
-            filecategories.add("grain");
-            filenames.add("foods_resized/sushi_100.png");
-            filecategories.add("grain");
-            filenames.add("foods_resized/grain_100.png");
-            filecategories.add("grain");
+
+
+
+
+
+
+
+
+
+
+
         }
 
-        FinalGame game = new FinalGame(3, 4, 2, 6, categories, filenames, filecategories);
+        FinalGame game = new FinalGame(3, 4, 2, 4, categories, filenames, filecategories);
 
         game.start();
 
