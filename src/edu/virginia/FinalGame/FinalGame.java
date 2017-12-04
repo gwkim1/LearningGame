@@ -686,7 +686,6 @@ public class FinalGame extends Game {
                 recentDropIndex = 0;
                 for (int i=0; i<randomNum; i++) {
                     if (foodIndex < totalNumFoods) {
-                        System.out.println(foodIndex + ", " + totalNumFoods);
                         if (i == 1) {
                             while (waitingFoodQueue.get(foodIndex - 1).foodType.equals(waitingFoodQueue.get(foodIndex).foodType)) {
                                 foodIndex++;
