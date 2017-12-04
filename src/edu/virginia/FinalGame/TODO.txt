@@ -1,7 +1,6 @@
 -drop multiple foods at same height depending on level
     -2 for level 2
     -3 for level 3
--enable pause for tutorial
 -add breaks between each level?
 -add retry option after level failure?
 -different limits for each food group?

@@ -669,11 +669,6 @@ public class FinalGame extends Game {
 
 
         if (playing && !tutorial) {
-
-
-
-
-
             // drop next food on a timed interval
             // if timer for this food exceeded TIME_BETWEEN_DROPS and there are more foods to come, reset dropindex
             // pick the most recent food from watingFoodQueue and add to droppedFoodQueue
@@ -712,6 +707,7 @@ public class FinalGame extends Game {
                         foodIndex++;
                     }
                 }
+                recentDropIndex++;
             }
 
             /*
