@@ -685,10 +685,12 @@ public class FinalGame extends Game {
             if (recentDropIndex >= TIME_BETWEEN_DROPS && foodIndex < totalNumFoods) {
                 recentDropIndex = 0;
                 for (int i=0; i<randomNum; i++) {
+                    //System.out.println(foodIndex + ", " + totalNumFoods);
                     if (foodIndex < totalNumFoods) {
                         if (i == 1) {
                             while (waitingFoodQueue.get(foodIndex - 1).foodType.equals(waitingFoodQueue.get(foodIndex).foodType)) {
                                 foodIndex++;
+                                if (foodIndex >= totalNumFoods) return;
                             }
                         }
                         if (i == 2) {
@@ -696,6 +698,7 @@ public class FinalGame extends Game {
                                     waitingFoodQueue.get(foodIndex - 2).foodType.equals(waitingFoodQueue.get(foodIndex).foodType) ||
                                     waitingFoodQueue.get(foodIndex - 1).foodType.equals(waitingFoodQueue.get(foodIndex - 2).foodType)) {
                                 foodIndex++;
+                                if (foodIndex >= totalNumFoods) return;
                             }
                         }
                         if (foodIndex < totalNumFoods) { //need to check again since foodindex could have increased
@@ -797,13 +800,13 @@ public class FinalGame extends Game {
                 }
             } else if (lose) {
                 if (noMoreFood){
-                    g.drawString("There is no more food!", gameWidth * 3 / 4, gameHeight / 8);
+                    g.drawString("There is no more food!", gameWidth * 3 / 4, gameHeight * 13 / 16);
                 }
                 if (reachedLimit) {
-                    g.drawString("You ate too much", gameWidth * 3 / 4, gameHeight / 8);
-                    g.drawString("of the same food group!", gameWidth * 3 / 4, gameHeight *3 / 16);
+                    g.drawString("You ate too much", gameWidth * 3 / 4, gameHeight * 13 / 16);
+                    g.drawString("of the same food group!", gameWidth * 3 / 4, gameHeight * 7 / 8);
                 }
-                g.drawString("GAME OVER", gameWidth * 3 / 4, gameHeight / 2);
+                g.drawString("GAME OVER", gameWidth * 7 / 8, gameHeight * 15/16);
             } else {
                 g.drawString("GAME PAUSED", gameWidth * 7/8, gameHeight * 7 / 8);
             }
