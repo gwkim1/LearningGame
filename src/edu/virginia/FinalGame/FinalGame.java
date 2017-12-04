@@ -5,6 +5,7 @@ import java.awt.event.KeyEvent;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.concurrent.ThreadLocalRandom;
 
 import edu.virginia.engine.display.Sprite;
 //import edu.virginia.engine.display.AnimatedSprite;
@@ -61,7 +62,7 @@ public class FinalGame extends Game {
     private Sprite up = new Sprite("up", "up.png");
     private Sprite down = new Sprite("down", "down.png");
 
-
+    private Sprite lastDropped;
 
     private SoundManager soundmanager = new SoundManager();
 
@@ -420,7 +421,7 @@ public class FinalGame extends Game {
         try {
             if (playing) {
                 String text = textTutorial.get(tutorialIndex);
-                System.out.println(text);
+                //System.out.println(text);
                 tutorialTimeIndex += 1;
                 //for the first highlighting of character, move to next instruction after 20 frames
                 if (text.equals("highlight the character") && tutorialTimeIndex == 100) {
@@ -672,53 +673,30 @@ public class FinalGame extends Game {
             // drop next food on a timed interval
             // if timer for this food exceeded TIME_BETWEEN_DROPS and there are more foods to come, reset dropindex
             // pick the most recent food from watingFoodQueue and add to droppedFoodQueue
-            if (level == 2) {
-                if (foodIndex % 2 == 1) {
-                    if (recentDropIndex >= TIME_BETWEEN_DROPS && foodIndex < totalNumFoods) {
-                        recentDropIndex = 0;
-                        droppedFoodQueue.add(waitingFoodQueue.get(foodIndex));
-                        foodIndex++;
-                    }
-                }
-                else {
-                    //shorter interval, as if multiple foods are almost falling together
-                    if (recentDropIndex >= 1 && foodIndex < totalNumFoods) {
-                        recentDropIndex = 0;
-                        droppedFoodQueue.add(waitingFoodQueue.get(foodIndex));
-                        foodIndex++;
-                    }
-                }
-                recentDropIndex++;
-            }
 
-            if (level == 3) {
-                if (foodIndex % 3 == 2) {
-                    if (recentDropIndex >= TIME_BETWEEN_DROPS && foodIndex < totalNumFoods) {
-                        recentDropIndex = 0;
-                        droppedFoodQueue.add(waitingFoodQueue.get(foodIndex));
-                        foodIndex++;
-                    }
-                }
-                else {
-                    //shorter interval, as if
-                    if (recentDropIndex >= 1 && foodIndex < totalNumFoods) {
-                        recentDropIndex = 0;
-                        droppedFoodQueue.add(waitingFoodQueue.get(foodIndex));
-                        foodIndex++;
-                    }
-                }
-                recentDropIndex++;
-            }
-
-            /*
+            // random number from 1 to level num
+            int randomNum = ThreadLocalRandom.current().nextInt(1, level + 1);
             if (recentDropIndex >= TIME_BETWEEN_DROPS && foodIndex < totalNumFoods) {
                 recentDropIndex = 0;
-                droppedFoodQueue.add(waitingFoodQueue.get(foodIndex));
-                foodIndex++;
+                for (int i=0; i<randomNum; i++) {
+                    if (i==1) {
+                        while (waitingFoodQueue.get(foodIndex - 1).foodType.equals(waitingFoodQueue.get(foodIndex).foodType)) {
+                            foodIndex++;
+                        }
+                    }
+                    if (i==2) {
+                        while (waitingFoodQueue.get(foodIndex - 1).foodType.equals(waitingFoodQueue.get(foodIndex).foodType) ||
+                                        waitingFoodQueue.get(foodIndex - 2).foodType.equals(waitingFoodQueue.get(foodIndex).foodType) ||
+                                        waitingFoodQueue.get(foodIndex - 1).foodType.equals(waitingFoodQueue.get(foodIndex - 2).foodType)) {
+                            foodIndex++;
+                        }
+                    }
+                    droppedFoodQueue.add(waitingFoodQueue.get(foodIndex));
+                    foodIndex++;
+                }
             }
-
             recentDropIndex++;
-            */
+
             //update each food position by applying gravity
             //System.out.println("waitingFoodQueue size: " + waitingFoodQueue.size());
             //System.out.println("droppedFoodQueue size: " + droppedFoodQueue.size());
@@ -744,6 +722,7 @@ public class FinalGame extends Game {
 
                 } else {
                     food.setPosition(food.getPosition().x, food.getPosition().y + gravity); //each food keeps on dropping
+                    if (food.getPosition().y > gameHeight) droppedFoodQueue.remove(food);
                     //prev_collision = false;
                 }
             }
