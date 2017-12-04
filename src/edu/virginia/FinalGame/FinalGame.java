@@ -31,11 +31,13 @@ public class FinalGame extends Game {
     private boolean playing;
     private boolean win;
     private boolean lose;
+    private boolean noMoreFood;
+    private boolean reachedLimit;
     private boolean tutorial;
     private int level;
     private final int TIME_BETWEEN_DROPS = 70;
     private final int TUTORIAL_PAUSE = 30;
-    private static int multiples = 20; //how many same food item would be included in a gameplay
+    private static int multiples = 5; //how many same food item would be included in a gameplay
     private int recentDropIndex;
     private int foodIndex;
     private int totalNumFoods;
@@ -163,7 +165,7 @@ public class FinalGame extends Game {
         tutorial = true;
         recentDropIndex = TIME_BETWEEN_DROPS-1; // first food drops immediately; -1 to avoid starting with null
         foodIndex = 0;
-        totalNumFoods = filenames.size() * 10;
+        //totalNumFoods = filenames.size() * 10;
         totalNumBars = numBars;
         this.goal = goal;
         this.limit = limit;
@@ -278,11 +280,13 @@ public class FinalGame extends Game {
 
             }
         }
-        win = all_goals_reached;
-        lose = !no_limit_reached;
-
+        if (playing) {
+            win = all_goals_reached;
+            lose = !no_limit_reached;
+            if (lose) reachedLimit = true;
+        }
         if (win || lose) {
-            System.out.println("playing set to false, win: " + win + " lose: " + lose);
+            //System.out.println("playing set to false, win: " + win + " lose: " + lose);
             if (!tutorial)
                 playing = false; //for tutorial, how a game can be lost would be shown and game resumed
         }
@@ -313,7 +317,7 @@ public class FinalGame extends Game {
         tutorial = false; //any new level should not be a tutorial
         recentDropIndex = TIME_BETWEEN_DROPS-1; // first food drops immediately; -1 to avoid starting with null
         foodIndex = 0;
-        totalNumFoods += 1;
+        //totalNumFoods += 1;
         totalNumBars += 1;
         level += 1;
 
@@ -408,11 +412,7 @@ public class FinalGame extends Game {
         for (int i = 0; i < filenames.size(); i++) {
             this.addFood(filenames.get(i), filenames.get(i), filecategories.get(i));
         }
-
-
-
-
-
+        totalNumFoods = waitingFoodQueue.size();
         Collections.shuffle(this.waitingFoodQueue);
     }
 
@@ -663,13 +663,19 @@ public class FinalGame extends Game {
         if (player == null) return; // player is null on first frame
         super.update(pressedKeys);
 
-
         if (tutorial) {
             updateTutorial(pressedKeys);
         }
 
 
         if (playing && !tutorial) {
+            if (foodIndex >= waitingFoodQueue.size()) {
+                noMoreFood = true;
+                lose = true;
+                playing = false;
+                return;
+            }
+
             // drop next food on a timed interval
             // if timer for this food exceeded TIME_BETWEEN_DROPS and there are more foods to come, reset dropindex
             // pick the most recent food from watingFoodQueue and add to droppedFoodQueue
@@ -679,20 +685,25 @@ public class FinalGame extends Game {
             if (recentDropIndex >= TIME_BETWEEN_DROPS && foodIndex < totalNumFoods) {
                 recentDropIndex = 0;
                 for (int i=0; i<randomNum; i++) {
-                    if (i==1) {
-                        while (waitingFoodQueue.get(foodIndex - 1).foodType.equals(waitingFoodQueue.get(foodIndex).foodType)) {
-                            foodIndex++;
+                    if (foodIndex < totalNumFoods) {
+                        System.out.println(foodIndex + ", " + totalNumFoods);
+                        if (i == 1) {
+                            while (waitingFoodQueue.get(foodIndex - 1).foodType.equals(waitingFoodQueue.get(foodIndex).foodType)) {
+                                foodIndex++;
+                            }
                         }
-                    }
-                    if (i==2) {
-                        while (waitingFoodQueue.get(foodIndex - 1).foodType.equals(waitingFoodQueue.get(foodIndex).foodType) ||
-                                        waitingFoodQueue.get(foodIndex - 2).foodType.equals(waitingFoodQueue.get(foodIndex).foodType) ||
-                                        waitingFoodQueue.get(foodIndex - 1).foodType.equals(waitingFoodQueue.get(foodIndex - 2).foodType)) {
-                            foodIndex++;
+                        if (i == 2) {
+                            while (waitingFoodQueue.get(foodIndex - 1).foodType.equals(waitingFoodQueue.get(foodIndex).foodType) ||
+                                    waitingFoodQueue.get(foodIndex - 2).foodType.equals(waitingFoodQueue.get(foodIndex).foodType) ||
+                                    waitingFoodQueue.get(foodIndex - 1).foodType.equals(waitingFoodQueue.get(foodIndex - 2).foodType)) {
+                                foodIndex++;
+                            }
                         }
+                        if (foodIndex < totalNumFoods) { //need to check again since foodindex could have increased
+                            droppedFoodQueue.add(waitingFoodQueue.get(foodIndex));
+                        }
+                        foodIndex++;
                     }
-                    droppedFoodQueue.add(waitingFoodQueue.get(foodIndex));
-                    foodIndex++;
                 }
             }
             recentDropIndex++;
@@ -778,16 +789,24 @@ public class FinalGame extends Game {
         }
 
         if (!playing) {
-            g.drawString("GAME PAUSED", gameWidth * 7/8, gameHeight * 7 / 8);
-
             if (win) {
                 if (level <= 2)
                     updateLevel();
-                else
-                    this.closeGame();
-            }
-            if (lose) {
-                g.drawString("GAME OVER", gameWidth * 3 / 4, gameHeight / 4);
+                else {
+                    g.drawString("YOU WIN", gameWidth * 3 / 4, gameHeight / 4);
+                    //this.closeGame();
+                }
+            } else if (lose) {
+                if (noMoreFood){
+                    g.drawString("There is no more food!", gameWidth * 3 / 4, gameHeight / 8);
+                }
+                if (reachedLimit) {
+                    g.drawString("You ate too much", gameWidth * 3 / 4, gameHeight / 8);
+                    g.drawString("of the same food group!", gameWidth * 3 / 4, gameHeight *3 / 16);
+                }
+                g.drawString("GAME OVER", gameWidth * 3 / 4, gameHeight / 2);
+            } else {
+                g.drawString("GAME PAUSED", gameWidth * 7/8, gameHeight * 7 / 8);
             }
 
         } else {
