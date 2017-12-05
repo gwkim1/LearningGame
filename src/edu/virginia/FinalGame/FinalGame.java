@@ -35,7 +35,7 @@ public class FinalGame extends Game {
     private boolean reachedLimit;
     private boolean tutorial;
     private int level;
-    private final int TIME_BETWEEN_DROPS = 70;
+    private final int TIME_BETWEEN_DROPS = 100;
     private final int TUTORIAL_PAUSE = 30;
     private static int multiples = 5; //how many same food item would be included in a gameplay
     private int recentDropIndex;
@@ -57,7 +57,7 @@ public class FinalGame extends Game {
     private ArrayList<String> filecategories = new ArrayList<>();
     private ArrayList<String> textTutorial = new ArrayList<>();
     private ArrayList<String> foodNamesTutorial = new ArrayList<>(); //in case each food item has to be explained
-    private Sprite player = new Sprite("player", "player.png");
+    private Sprite player = new Sprite("player", "asian.png");
 
     private Sprite left = new Sprite("left", "left.png");
     private Sprite right = new Sprite("right", "right.png");

@@ -1,6 +1,3 @@
-MVP specs:
--different limits for each food group?
-
 Extraneous:
 -add breaks between each level?
 -add retry option after level failure?
