@@ -36,7 +36,7 @@ public class FinalGame extends Game {
     private boolean tutorial;
     private int level;
     private final int TIME_BETWEEN_DROPS = 100;
-    private final int TUTORIAL_PAUSE = 30;
+    private final int TUTORIAL_PAUSE = 80;
     private static int multiples = 5; //how many same food item would be included in a gameplay
     private int recentDropIndex;
     private int foodIndex;
@@ -611,7 +611,7 @@ public class FinalGame extends Game {
             }
 
             if (text.equals("collect beans, veggie bar goes up!")) {
-                System.out.println(this.playing);
+                //System.out.println(this.playing);
                 if (tutorialTimeIndex == TUTORIAL_PAUSE * 2 - 1) {
                     //System.out.println(stacks.get(1).size());
                     stacks.get(1).pop();
@@ -629,7 +629,7 @@ public class FinalGame extends Game {
             }
 
             if (text.equals("collect garlic, veggie bar goes up, goal reached!")) {
-                System.out.println(this.playing);
+                //System.out.println(this.playing);
                 if (tutorialTimeIndex <= TUTORIAL_PAUSE) {
                     g.drawString("The veggie bar went up!", gameWidth * 5/8, gameHeight / 4);
                 }
