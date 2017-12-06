@@ -795,7 +795,7 @@ public class FinalGame extends Game {
                 if (level <= 2)
                     updateLevel();
                 else {
-                    g.drawString("YOU WIN", gameWidth * 3 / 4, gameHeight / 4);
+                    g.drawString("YOU WIN!", gameWidth * 3 / 4, gameHeight / 4);
                     //this.closeGame();
                 }
             } else if (lose) {
@@ -821,7 +821,7 @@ public class FinalGame extends Game {
         }
 
         if (win && !tutorial) {
-            g.drawString("YOU WIN!", 10, 100);
+            //g.drawString("YOU WIN!", 10, 100);
             this.stop();
         } else {
             Graphics2D g2d = (Graphics2D) g;
