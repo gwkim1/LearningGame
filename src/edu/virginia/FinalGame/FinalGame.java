@@ -61,8 +61,6 @@ public class FinalGame extends Game {
 
     private Sprite left = new Sprite("left", "left.png");
     private Sprite right = new Sprite("right", "right.png");
-    private Sprite up = new Sprite("up", "up.png");
-    private Sprite down = new Sprite("down", "down.png");
 
     private Sprite lastDropped;
 
@@ -179,8 +177,6 @@ public class FinalGame extends Game {
 
         left.setPosition(gameWidth * 3/4 - 100, gameHeight /2);
         right.setPosition(gameWidth * 3/4 + 100, gameHeight /2);
-        up.setPosition(gameWidth * 3/4, gameHeight /2 - 100);
-        down.setPosition(gameWidth * 3/4, gameHeight /2);
 
         //for the gameplay bars
         for (int i = 0; i < totalNumBars; i++) {
